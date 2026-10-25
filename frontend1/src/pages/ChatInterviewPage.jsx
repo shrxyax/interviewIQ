@@ -36,6 +36,7 @@ export default function ChatInterviewPage() {
   const [interviewSession, setInterviewSession] = useState(null);
   const [interviewContextInfo, setInterviewContextInfo] = useState(null);
   const [interviewReport, setInterviewReport] = useState(null);
+  const [reportSessionId, setReportSessionId] = useState(null);
   const [fileName, setFileName] = useState("");
   const [resumeId, setResumeId] = useState(null);
 
@@ -71,6 +72,7 @@ export default function ChatInterviewPage() {
     if (session.state === "REPORT") {
       localStorage.removeItem(ACTIVE_SESSION_KEY);
       setInterviewReport(session.report);
+      setReportSessionId(session.session_id);
       setInterviewSession(null);
       setCurrentView("report");
       return;
@@ -92,8 +94,6 @@ export default function ChatInterviewPage() {
     try {
       const res = await api.post("/upload", formData);
 
-      console.log(res.data);
-
       setUploaded(true);
       setFileName(file.name);
       setResumeId(res.data.resume_id ?? null);
@@ -101,6 +101,7 @@ export default function ChatInterviewPage() {
 
       setInterviewSession(null);
       setInterviewReport(null);
+      setReportSessionId(null);
 
       setMessages([
         {
@@ -170,6 +171,7 @@ export default function ChatInterviewPage() {
     setCurrentView("chat");
     setInterviewSession(null);
     setInterviewReport(null);
+    setReportSessionId(null);
 
     setMessages([
       {
@@ -236,6 +238,7 @@ export default function ChatInterviewPage() {
       const session = await startInterviewSession(context.context_id);
 
       setInterviewReport(null);
+      setReportSessionId(null);
       await applySessionUpdate(session, context);
     } catch (err) {
       console.error(err);
@@ -342,7 +345,7 @@ export default function ChatInterviewPage() {
                 {fileName || "document.pdf"}
               </span>
               <button
-                onClick={() => { setUploaded(false); setCurrentView("chat"); setInterviewSession(null); setInterviewReport(null); }}
+                onClick={() => { setUploaded(false); setCurrentView("chat"); setInterviewSession(null); setInterviewReport(null); setReportSessionId(null); }}
                 title="Upload another PDF"
                 style={{ background: "transparent", border: "none", color: "var(--muted)", display: "flex", padding: 0 }}
               >
@@ -398,8 +401,10 @@ export default function ChatInterviewPage() {
       {uploaded && currentView === "report" && (
         <FinalInterviewReport
           report={interviewReport}
+          sessionId={reportSessionId}
           onBack={() => {
             setInterviewReport(null);
+            setReportSessionId(null);
             setCurrentView("interview-setup");
           }}
         />

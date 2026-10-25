@@ -49,8 +49,6 @@ async def upload_pdf(
 
     embeddings = generate_embeddings(texts)
 
-    print("Embedding shape:", embeddings.shape)
-
     stored = save_to_faiss(embeddings, chunks)
 
     resume = Resume(

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   CheckCircle2,
   ArrowLeft,
@@ -13,12 +14,18 @@ import {
   Activity,
   Eye as EyeIcon,
   Layers,
+  ListTree,
 } from "lucide-react";
+
+import EvidenceTimeline from "./EvidenceTimeline";
 
 export default function FinalInterviewReport({
   report,
+  sessionId,
   onBack,
 }) {
+  const [tab, setTab] = useState("report");
+
   if (!report) {
     return (
       <div className="report-page">
@@ -76,6 +83,31 @@ export default function FinalInterviewReport({
             </p>
           </div>
         </div>
+
+        {sessionId && (
+          <div className="report-tabs">
+            <button
+              className={`report-tab ${tab === "report" ? "report-tab-active" : ""}`}
+              onClick={() => setTab("report")}
+            >
+              <Sparkles size={16} />
+              Report
+            </button>
+
+            <button
+              className={`report-tab ${tab === "evidence" ? "report-tab-active" : ""}`}
+              onClick={() => setTab("evidence")}
+            >
+              <ListTree size={16} />
+              Evidence Trail
+            </button>
+          </div>
+        )}
+
+        {tab === "evidence" && sessionId ? (
+          <EvidenceTimeline sessionId={sessionId} />
+        ) : (
+          <>
 
         {/* Overall Score */}
         <div className="overall-score-card">
@@ -331,6 +363,9 @@ export default function FinalInterviewReport({
             {report.final_feedback || "No final feedback was generated."}
           </p>
         </div>
+
+          </>
+        )}
 
         <button
           className="finish-report-button"

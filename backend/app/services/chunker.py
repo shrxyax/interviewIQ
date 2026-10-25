@@ -64,7 +64,6 @@ def split_resume(text):
 
 
 def chunk_pages(pages):
-    print("chunk_pages() CALLED")
     """
     Convert PDF pages into chunks while preserving metadata.
 
@@ -86,10 +85,8 @@ def chunk_pages(pages):
     for page in pages:
 
         if "Projects" in page["text"] and "Education" in page["text"]:
-            print("Using Resume Chunker")
             chunks = split_resume(page["text"])
         else:
-            print("Using Generic Chunker")
             chunks = split_text(page["text"])
 
 

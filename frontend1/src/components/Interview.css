@@ -941,6 +941,37 @@
     margin-bottom: 32px;
 }
 
+.report-tabs {
+    display: flex;
+    gap: 8px;
+
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+}
+
+.report-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+
+    padding: 10px 4px;
+    margin-bottom: -1px;
+    cursor: pointer;
+}
+
+.report-tab-active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
 .report-success-icon {
     width: 58px;
     height: 58px;

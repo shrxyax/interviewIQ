@@ -47,12 +47,6 @@ def retrieve(query: str, k: int = 5):
 
         chunk["score"] = float(score)
 
-        print("=" * 70)
-        print(f"Score : {score:.4f}")
-        print(f"Page  : {chunk['page']}")
-        print(f"File  : {chunk['filename']}")
-        print(chunk["text"][:200])
-
         results.append(chunk)
 
     return results

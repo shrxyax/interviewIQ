@@ -5,16 +5,24 @@ import { Building2 } from "lucide-react";
 import { getCompanies } from "../services/content";
 import Card from "../components/shared/Card";
 import Badge from "../components/shared/Badge";
+import { LoadingState, ErrorState } from "../components/shared/LoadingState";
 
 export default function CompaniesPage() {
   const [companies, setCompanies] = useState(null);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const load = () => {
+    setError(null);
+    getCompanies().then(setCompanies).catch((e) => setError(e.message || "Failed to load companies."));
+  };
+
   useEffect(() => {
-    getCompanies().then(setCompanies);
+    load();
   }, []);
 
-  if (!companies) return <div className="page-content"><p className="spinner-text">Loading companies...</p></div>;
+  if (error) return <ErrorState message={`Couldn't load companies: ${error}`} onRetry={load} />;
+  if (!companies) return <LoadingState label="Loading companies..." />;
 
   return (
     <div className="page-content">

@@ -24,3 +24,6 @@ export const reportProctoringEvent = (sessionId, eventType) =>
   api
     .post(`/interview/sessions/${sessionId}/proctoring-event`, { event_type: eventType })
     .then((r) => r.data);
+
+export const getSessionEvidence = (sessionId) =>
+  api.get(`/interview/sessions/${sessionId}/evidence`).then((r) => r.data);

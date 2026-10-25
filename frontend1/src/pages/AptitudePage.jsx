@@ -5,6 +5,7 @@ import { startAttempt, submitAttempt, listAttempts } from "../services/aptitude"
 import Card from "../components/shared/Card";
 import Badge from "../components/shared/Badge";
 import ProgressBar from "../components/shared/ProgressBar";
+import { ErrorState } from "../components/shared/LoadingState";
 
 const CATEGORY_LABELS = {
   quantitative: "Quantitative Aptitude",
@@ -276,17 +277,21 @@ export default function AptitudePage() {
   const [result, setResult] = useState(null);
   const [starting, setStarting] = useState(false);
   const [history, setHistory] = useState(null);
+  const [startError, setStartError] = useState(null);
 
   useEffect(() => {
-    listAttempts().then(setHistory);
+    listAttempts().then(setHistory).catch(() => {});
   }, []);
 
   const handleStart = async () => {
     setStarting(true);
+    setStartError(null);
     try {
       const a = await startAttempt();
       setAttempt(a);
       setResult(null);
+    } catch (e) {
+      setStartError(e.response?.data?.detail || "Failed to start the test.");
     } finally {
       setStarting(false);
     }
@@ -310,7 +315,12 @@ export default function AptitudePage() {
       ) : attempt ? (
         <TestRunner attempt={attempt} onSubmitted={handleSubmitted} />
       ) : (
-        <Intro onStart={handleStart} starting={starting} history={history} />
+        <>
+          {startError && (
+            <p style={{ color: "var(--danger)", fontSize: 13, marginBottom: 14 }}>{startError}</p>
+          )}
+          <Intro onStart={handleStart} starting={starting} history={history} />
+        </>
       )}
     </div>
   );

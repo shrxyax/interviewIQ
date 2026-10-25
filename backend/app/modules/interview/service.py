@@ -695,6 +695,93 @@ def _concept_belief_summary(db: Session, turns: list[InterviewTurn]) -> dict:
     }
 
 
+def get_session_evidence(db: Session, user: User, session_id: str) -> dict:
+    """
+    Phase 12: the raw evidence trail behind this session's report, one item
+    per signal recorded while it ran (same facts as the EvidenceEvent rows
+    written in submit_turn_answer/_evaluate_mkt_turn, read here off
+    InterviewTurn directly since it already carries the joined question/
+    answer/belief context those events only reference by id).
+    """
+
+    session = _get_owned_session(db, user, session_id)
+    turns = _answered_turns(db, session)
+
+    items: list[dict] = []
+    for t in turns:
+        if t.source == "mkt" and t.mkt_concept_id:
+            concept = db.get(Concept, t.mkt_concept_id)
+            concept_name = concept.name if concept else t.mkt_concept_id
+
+            before = np.asarray(t.mkt_belief_before) if t.mkt_belief_before else None
+            after = np.asarray(t.mkt_belief_after) if t.mkt_belief_after else None
+            before_label = STATES[int(np.argmax(before))] if before is not None else None
+            after_label = STATES[int(np.argmax(after))] if after is not None else None
+
+            items.append(
+                {
+                    "seq": t.seq,
+                    "source": "mkt",
+                    "signal": t.mkt_probe_type,
+                    "concept_id": t.mkt_concept_id,
+                    "concept_name": concept_name,
+                    "outcome": t.mkt_outcome,
+                    "belief_before": t.mkt_belief_before,
+                    "belief_after": t.mkt_belief_after,
+                    "classification_before": before_label,
+                    "classification_after": after_label,
+                    "description": (
+                        f"Turn {t.seq}: {t.mkt_probe_type} probe on {concept_name} "
+                        f"→ outcome={t.mkt_outcome} "
+                        f"→ belief updated from {t.mkt_belief_before} to {t.mkt_belief_after}"
+                    ),
+                    "question": t.question,
+                    "answer": t.answer,
+                }
+            )
+        else:
+            items.append(
+                {
+                    "seq": t.seq,
+                    "source": "interview",
+                    "signal": "turn_answered",
+                    "description": f"Turn {t.seq}: answered — scored {t.score}/10",
+                    "question": t.question,
+                    "answer": t.answer,
+                    "score": t.score,
+                    "evaluation": t.evaluation,
+                }
+            )
+
+        if t.comm_metrics:
+            items.append(
+                {
+                    "seq": t.seq,
+                    "source": "comms",
+                    "signal": "communication_analysis",
+                    "description": f"Turn {t.seq}: communication metrics recorded",
+                    "metrics": t.comm_metrics,
+                }
+            )
+
+        if t.emotion_metrics:
+            items.append(
+                {
+                    "seq": t.seq,
+                    "source": "comms",
+                    "signal": "emotion_snapshot",
+                    "description": f"Turn {t.seq}: emotion snapshot recorded",
+                    "metrics": t.emotion_metrics,
+                }
+            )
+
+    return {
+        "session_id": session.id,
+        "item_count": len(items),
+        "items": items,
+    }
+
+
 def record_proctoring_event(db: Session, user: User, session_id: str, event_type: str) -> dict:
     session = _get_owned_session(db, user, session_id)
 

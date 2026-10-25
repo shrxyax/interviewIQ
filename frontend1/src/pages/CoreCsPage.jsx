@@ -3,19 +3,29 @@ import ReactMarkdown from "react-markdown";
 
 import { getCoreCs } from "../services/content";
 import Card from "../components/shared/Card";
+import { LoadingState, ErrorState } from "../components/shared/LoadingState";
 
 export default function CoreCsPage() {
   const [data, setData] = useState(null);
   const [activeTopic, setActiveTopic] = useState(null);
+  const [error, setError] = useState(null);
+
+  const load = () => {
+    setError(null);
+    getCoreCs()
+      .then((d) => {
+        setData(d);
+        setActiveTopic(d.topics[0]?.id);
+      })
+      .catch((e) => setError(e.message || "Failed to load Core CS notes."));
+  };
 
   useEffect(() => {
-    getCoreCs().then((d) => {
-      setData(d);
-      setActiveTopic(d.topics[0]?.id);
-    });
+    load();
   }, []);
 
-  if (!data) return <div className="page-content"><p className="spinner-text">Loading Core CS notes...</p></div>;
+  if (error) return <ErrorState message={`Couldn't load Core CS notes: ${error}`} onRetry={load} />;
+  if (!data) return <LoadingState label="Loading Core CS notes..." />;
 
   const topic = data.topics.find((t) => t.id === activeTopic);
 

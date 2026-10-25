@@ -122,6 +122,18 @@ def report_proctoring_event(
         raise HTTPException(status_code=404, detail=str(exc))
 
 
+@router.get("/sessions/{session_id}/evidence")
+def read_session_evidence(
+    session_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_user_or_guest),
+):
+    try:
+        return service.get_session_evidence(db, user, session_id)
+    except InterviewSessionError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
 @router.get("/sessions/{session_id}")
 def read_session(
     session_id: str,

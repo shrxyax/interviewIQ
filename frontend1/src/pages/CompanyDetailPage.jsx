@@ -5,6 +5,7 @@ import { ArrowLeft, ListChecks, Workflow } from "lucide-react";
 import { getCompanyReadiness, getCompanyPlan } from "../services/content";
 import Card from "../components/shared/Card";
 import ProgressBar from "../components/shared/ProgressBar";
+import { LoadingState, ErrorState } from "../components/shared/LoadingState";
 
 function readinessColor(pct) {
   if (pct >= 70) return "var(--success)";
@@ -17,13 +18,20 @@ export default function CompanyDetailPage() {
   const navigate = useNavigate();
   const [readiness, setReadiness] = useState(null);
   const [plan, setPlan] = useState(null);
+  const [error, setError] = useState(null);
+
+  const load = () => {
+    setError(null);
+    getCompanyReadiness(companyId).then(setReadiness).catch((e) => setError(e.message || "Failed to load readiness."));
+    getCompanyPlan(companyId).then(setPlan).catch(() => {});
+  };
 
   useEffect(() => {
-    getCompanyReadiness(companyId).then(setReadiness);
-    getCompanyPlan(companyId).then(setPlan);
+    load();
   }, [companyId]);
 
-  if (!readiness) return <div className="page-content"><p className="spinner-text">Loading readiness...</p></div>;
+  if (error) return <ErrorState message={`Couldn't load this company: ${error}`} onRetry={load} />;
+  if (!readiness) return <LoadingState label="Loading readiness..." />;
 
   return (
     <div className="page-content">
