@@ -1,0 +1,1329 @@
+{
+  "source": "https://github.com/arindal1/SDE-DSA-SD-Prep",
+  "total_problems": 137,
+  "topics": [
+    {
+      "id": "dsa_sheet.basics",
+      "name": "Basics (Math, Recursion, Hashing)",
+      "problems": [
+        {
+          "title": "Count the Digits",
+          "difficulty": "Easy",
+          "pattern": "Maths",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/1.Maths/1.CountTheDigits.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p01"
+        },
+        {
+          "title": "Print N Names",
+          "difficulty": "Easy",
+          "pattern": "Recursion",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/2.Recursion/1.N-Names.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p02"
+        },
+        {
+          "title": "Frequency of Array Elements",
+          "difficulty": "Easy",
+          "pattern": "Hashing",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/3.Hashing/1.FreqOfArrayEl.md",
+          "concept_id": "dsa.hashing.hash_table",
+          "id": "dsa_sheet.basics.p03"
+        },
+        {
+          "title": "Reverse a Number",
+          "difficulty": "Easy",
+          "pattern": "Maths",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/1.Maths/2.ReverseNumber.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p04"
+        },
+        {
+          "title": "1 to N",
+          "difficulty": "Easy",
+          "pattern": "Recursion",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/2.Recursion/2.1-N.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p05"
+        },
+        {
+          "title": "Highest & Lowest Freq Element",
+          "difficulty": "Easy",
+          "pattern": "Hashing",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/3.Hashing/2.HighLowFreqEl.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p06"
+        },
+        {
+          "title": "Palindrome Number",
+          "difficulty": "Easy",
+          "pattern": "Maths",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/1.Maths/3.PalindromeNumber.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p07"
+        },
+        {
+          "title": "N to 1",
+          "difficulty": "Easy",
+          "pattern": "Recursion",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/2.Recursion/3.N-1.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p08"
+        },
+        {
+          "title": "First Unique Character",
+          "difficulty": "Easy",
+          "pattern": "Hashing",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/3.Hashing/3.FirstUnique.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p09"
+        },
+        {
+          "title": "GCD",
+          "difficulty": "Easy",
+          "pattern": "Maths",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/01.Basics/1.Maths/4.GCD.md",
+          "concept_id": null,
+          "id": "dsa_sheet.basics.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.sorting",
+      "name": "Sorting",
+      "problems": [
+        {
+          "title": "Selection Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/1.Sorting/1.SelectionSort.md",
+          "concept_id": null,
+          "id": "dsa_sheet.sorting.p01"
+        },
+        {
+          "title": "Bubble Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/1.Sorting/2.BubbleSort.md",
+          "concept_id": null,
+          "id": "dsa_sheet.sorting.p02"
+        },
+        {
+          "title": "Insertion Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/1.Sorting/3.InsertionSort.md",
+          "concept_id": null,
+          "id": "dsa_sheet.sorting.p03"
+        },
+        {
+          "title": "Merge Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/2.Sorting/1.MergeSort.md",
+          "concept_id": null,
+          "id": "dsa_sheet.sorting.p04"
+        },
+        {
+          "title": "Quick Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/2.Sorting/2.QuickSort.md",
+          "concept_id": "dsa.sort.quicksort",
+          "id": "dsa_sheet.sorting.p05"
+        },
+        {
+          "title": "Heap Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/2.Sorting/3.HeapSort.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.sorting.p06"
+        },
+        {
+          "title": "Radix Sort",
+          "difficulty": "Medium",
+          "pattern": "Sorting",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/02.Sorting/2.Sorting/4.RadixSort.md",
+          "concept_id": null,
+          "id": "dsa_sheet.sorting.p07"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.arrays",
+      "name": "Arrays",
+      "problems": [
+        {
+          "title": "Largest Element in the Array",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/1.Easy/1.LargestElement.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p01"
+        },
+        {
+          "title": "Two Sum",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/2.Medium/1.2Sum.md",
+          "concept_id": "dsa.hashing.hash_table",
+          "id": "dsa_sheet.arrays.p02"
+        },
+        {
+          "title": "Pascal's Triangle",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/3.Hard/1.PascalsTriangle.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p03"
+        },
+        {
+          "title": "Second Largest Element in the Array",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/1.Easy/2.SecondLargestElement.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p04"
+        },
+        {
+          "title": "Sort an Array of 0s, 1s & 2s",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/2.Medium/2.SortArrayOf012.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p05"
+        },
+        {
+          "title": "Majority Element - II [> n/3]",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/3.Hard/2.MajorityElementII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p06"
+        },
+        {
+          "title": "Is Array Sorted?",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/1.Easy/3.IsArraySorted.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p07"
+        },
+        {
+          "title": "Majority Element - I [> n/2]",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/2.Medium/3.MajorityElement.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p08"
+        },
+        {
+          "title": "Three Sum",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/03.Arrays/3.Hard/3.ThreeSum.md",
+          "concept_id": null,
+          "id": "dsa_sheet.arrays.p09"
+        },
+        {
+          "title": "Remove Duplicates from Array",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": "https://leetcode.com/problems/remove-duplicates-from-sorted-array",
+          "source_path": "01.data_structures_algorithms/03.Arrays/1.Easy/4.RemoveDuplicates.md",
+          "concept_id": "dsa.hashing.hash_table",
+          "id": "dsa_sheet.arrays.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.binary_search",
+      "name": "Binary Search",
+      "problems": [
+        {
+          "title": "Binary Search on Sorted Array",
+          "difficulty": "Easy",
+          "pattern": "BSon1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/1.BSon1D/1.BinarySearchOnASortedArray.md",
+          "concept_id": "dsa.search.binary_search",
+          "id": "dsa_sheet.binary_search.p01"
+        },
+        {
+          "title": "Koko Eating Bananas",
+          "difficulty": "Medium",
+          "pattern": "BSonAnswers",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/2.BSonAnswers/1.KokoEatingBananas.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p02"
+        },
+        {
+          "title": "Row with Maximum 1s",
+          "difficulty": "Medium",
+          "pattern": "BSon2D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/3.BSon2D/1.RowWithMaximum1s.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p03"
+        },
+        {
+          "title": "Search Insert Position",
+          "difficulty": "Easy",
+          "pattern": "BSon1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/1.BSon1D/2.SearchInsertPosition.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p04"
+        },
+        {
+          "title": "Days to make M Bouquets",
+          "difficulty": "Medium",
+          "pattern": "BSonAnswers",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/2.BSonAnswers/2.DaysToMakeBouquets.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p05"
+        },
+        {
+          "title": "Search in a 2D Matrix - I",
+          "difficulty": "Medium",
+          "pattern": "BSon2D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/3.BSon2D/2.SearchInA2DMatrixI.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p06"
+        },
+        {
+          "title": "First and Last Occurance in a Sorted Array",
+          "difficulty": "Easy",
+          "pattern": "BSon1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/1.BSon1D/3.FirstAndLastOccurance.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p07"
+        },
+        {
+          "title": "Smallest Divisor within the Threshold",
+          "difficulty": "Medium",
+          "pattern": "BSonAnswers",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/2.BSonAnswers/3.SmallestDivisorInThreshold.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p08"
+        },
+        {
+          "title": "Search in a 2D Matrix - II",
+          "difficulty": "Medium",
+          "pattern": "BSon2D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/3.BSon2D/3.SearchInA2DMatrixII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p09"
+        },
+        {
+          "title": "Search in a Rotated Sorted Array - I",
+          "difficulty": "Easy",
+          "pattern": "BSon1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/04.Binary_Search/1.BSon1D/4.SearchInRotatedSortedArrayI.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_search.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.strings",
+      "name": "Strings",
+      "problems": [
+        {
+          "title": "Remove Outer Parenthesis",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/1.Easy/1.RemoveOuterParanthesis.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p01"
+        },
+        {
+          "title": "Frequency Sort",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/1.FrequencySort.md",
+          "concept_id": "dsa.hashing.hash_table",
+          "id": "dsa_sheet.strings.p02"
+        },
+        {
+          "title": "Max Depth of Parenthesis",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/2.MaxDepthOfParenthesis.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p03"
+        },
+        {
+          "title": "Roman to Integer",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/3.RomanToInteger.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p04"
+        },
+        {
+          "title": "String to Integer (ATOI)",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/4.ATOI.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p05"
+        },
+        {
+          "title": "Longest Palindrome Substrings",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/5.LongestPalindromeSubstring.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p06"
+        },
+        {
+          "title": "Sum of Beauty of Substrings",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/6.SumOfBeautyOfSubstrings.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p07"
+        },
+        {
+          "title": "Reverse Words in a String",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/7.ReverseWords.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p08"
+        },
+        {
+          "title": "Longest Substring without Repeating Char",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/05.Strings/2.Medium/9.LongestSubstringWithoutRepeatingCharacters.md",
+          "concept_id": null,
+          "id": "dsa_sheet.strings.p09"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.linked_list",
+      "name": "Linked Lists",
+      "problems": [
+        {
+          "title": "Linked List Constructors",
+          "difficulty": "Medium",
+          "pattern": "SinglyLinkedList",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/1.SinglyLinkedList/README.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p01"
+        },
+        {
+          "title": "Array to DLL",
+          "difficulty": "Medium",
+          "pattern": "DoublyLinkedList",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/2.DoublyLinkedList/README.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p02"
+        },
+        {
+          "title": "Find the middle of a LL",
+          "difficulty": "Medium",
+          "pattern": "MediumLL",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/3.MediumLL/01.MiddleOfLL.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p03"
+        },
+        {
+          "title": "Delete all occurance of Key",
+          "difficulty": "Medium",
+          "pattern": "MediumDLL",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/4.MediumDLL/01.DeleteAllKeys.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p04"
+        },
+        {
+          "title": "Reverse LL in a Group",
+          "difficulty": "Hard",
+          "pattern": "HardLL",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/5.HardLL/01.ReveseLLGroup.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p05"
+        },
+        {
+          "title": "Array to Linked List",
+          "difficulty": "Medium",
+          "pattern": "SinglyLinkedList",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/1.SinglyLinkedList/README.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p06"
+        },
+        {
+          "title": "Deletion at K",
+          "difficulty": "Medium",
+          "pattern": "DoublyLinkedList",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/2.DoublyLinkedList/README.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p07"
+        },
+        {
+          "title": "Reverse a LL (Iterative)",
+          "difficulty": "Medium",
+          "pattern": "MediumLL",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/3.MediumLL/02.ReverseLLIterative.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p08"
+        },
+        {
+          "title": "Pairs with given Sum in DLL",
+          "difficulty": "Medium",
+          "pattern": "MediumDLL",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/4.MediumDLL/02.PairsWithGivenSum.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p09"
+        },
+        {
+          "title": "Rotate a LL",
+          "difficulty": "Hard",
+          "pattern": "HardLL",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/06.Linked_List/5.HardLL/02.RotateList.md",
+          "concept_id": null,
+          "id": "dsa_sheet.linked_list.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.recursion",
+      "name": "Recursion",
+      "problems": [
+        {
+          "title": "Generate Paranthesis",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/02.GenerateParanthesis.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p01"
+        },
+        {
+          "title": "Palindrome Partioning",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/3.Hard/01.PalindromePartitioning.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p02"
+        },
+        {
+          "title": "Combination Sum",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/07.CombinationSum.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p03"
+        },
+        {
+          "title": "Combination Sum - II",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/08.CombinationSumII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p04"
+        },
+        {
+          "title": "Subsets",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/09.SubsetSum.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p05"
+        },
+        {
+          "title": "Subsets - II",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/10.SubsetSumII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p06"
+        },
+        {
+          "title": "Combination Sum - III",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/09.SubsetSum.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p07"
+        },
+        {
+          "title": "Permutations of a String",
+          "difficulty": "Medium",
+          "pattern": "Subsequence",
+          "leetcode_url": "https://leetcode.com/problems/permutations",
+          "source_path": "01.data_structures_algorithms/07.Recursion/2.Subsequence/13.PermutaionsOfAString.md",
+          "concept_id": null,
+          "id": "dsa_sheet.recursion.p08"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.stack_queue",
+      "name": "Stack & Queue",
+      "problems": [
+        {
+          "title": "Implement Stack Using Queue",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": "https://leetcode.com/problems/implement-stack-using-queues",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/01.Basics/01.ImplementStackUsingQueue.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p01"
+        },
+        {
+          "title": "Infix 2 Postfix",
+          "difficulty": "Medium",
+          "pattern": "Prefix Postfix Infix",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/02.Prefix_Postfix_Infix/01.Infix2Postfix.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p02"
+        },
+        {
+          "title": "Next Greater Element (LC)",
+          "difficulty": "Medium",
+          "pattern": "MonotonicDS",
+          "leetcode_url": "https://leetcode.com/problems/next-greater-element-i",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/03.MonotonicDS/01.NextGreaterElement.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p03"
+        },
+        {
+          "title": "Sliding Window Maximum",
+          "difficulty": "Hard",
+          "pattern": "Advanced",
+          "leetcode_url": "https://leetcode.com/problems/sliding-window-maximum",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/04.Advanced/01.SlidingWindowMaximum.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p04"
+        },
+        {
+          "title": "Implement Queue Using Stacks",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": "https://leetcode.com/problems/implement-queue-using-stacks",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/01.Basics/02.ImplementQueueUsingStacks.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p05"
+        },
+        {
+          "title": "Infix 2 Prefix",
+          "difficulty": "Medium",
+          "pattern": "Prefix Postfix Infix",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/02.Prefix_Postfix_Infix/02.Infix2Prefix.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p06"
+        },
+        {
+          "title": "Next Greater Element II",
+          "difficulty": "Medium",
+          "pattern": "MonotonicDS",
+          "leetcode_url": "https://leetcode.com/problems/next-greater-element-ii",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/03.MonotonicDS/02.NextGreaterElementII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p07"
+        },
+        {
+          "title": "Online Stock Span",
+          "difficulty": "Hard",
+          "pattern": "Advanced",
+          "leetcode_url": "https://leetcode.com/problems/online-stock-span",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/04.Advanced/02.OnlineStockSpan.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p08"
+        },
+        {
+          "title": "Valid Parenthesis",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": "https://leetcode.com/problems/valid-parentheses",
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/01.Basics/03.ValidParanthesis.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p09"
+        },
+        {
+          "title": "Postfix 2 Infix",
+          "difficulty": "Medium",
+          "pattern": "Prefix Postfix Infix",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/09.Stack_N_Queue/02.Prefix_Postfix_Infix/03.Postfix2Infix.md",
+          "concept_id": null,
+          "id": "dsa_sheet.stack_queue.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.two_pointer",
+      "name": "Two Pointer & Sliding Window",
+      "problems": [
+        {
+          "title": "Longest Substring without Repeating Characters",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/longest-substring-without-repeating-characters",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/01.Medium/01.LongestSubStrWoRepeatingChar.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p01"
+        },
+        {
+          "title": "Substring w/ K Distinct Characters",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/02.Hard/01.SubstringWithKDistinctChars.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p02"
+        },
+        {
+          "title": "Max Consecutive Ones III",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/max-consecutive-ones-iii",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/01.Medium/02.MaxConsecutiveOnesIII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p03"
+        },
+        {
+          "title": "Substring w/ K Different Characters",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": "https://leetcode.com/problems/subarrays-with-k-different-integers",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/02.Hard/02.SubstringWithKDiffInt.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p04"
+        },
+        {
+          "title": "Fruits in a Basket",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/01.Medium/03.FruitsInABasket.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p05"
+        },
+        {
+          "title": "Minimum Window Substring",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": "https://leetcode.com/problems/minimum-window-substring",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/02.Hard/03.MinimumWindowSubstring.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p06"
+        },
+        {
+          "title": "Longest Repeating Character Replacement",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/longest-repeating-character-replacement",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/01.Medium/04.LongestRepeatingCharacterReplacement.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p07"
+        },
+        {
+          "title": "Binary Subarray with Sum K",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/binary-subarrays-with-sum",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/01.Medium/05.BinarySubarraysWSumK.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p08"
+        },
+        {
+          "title": "Subarrays that are Nice",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/count-number-of-nice-subarrays",
+          "source_path": "01.data_structures_algorithms/10.TwoPointer_N_SlidingWindow/01.Medium/06.NiceSubArrays.md",
+          "concept_id": null,
+          "id": "dsa_sheet.two_pointer.p09"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.heaps",
+      "name": "Heaps",
+      "problems": [
+        {
+          "title": "About Priority Queues",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/01.Basics/README.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.heaps.p01"
+        },
+        {
+          "title": "Kth Largest Element",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/kth-largest-element-in-an-array",
+          "source_path": "01.data_structures_algorithms/11.Heaps/02.Medium/01.KthLargestElement.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.heaps.p02"
+        },
+        {
+          "title": "Design Twitter",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": "https://leetcode.com/problems/design-twitter",
+          "source_path": "01.data_structures_algorithms/11.Heaps/03.Hard/01.DesignTwitter.md",
+          "concept_id": null,
+          "id": "dsa_sheet.heaps.p03"
+        },
+        {
+          "title": "Binary Min Heap",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/01.Basics/01.BinaryMinHeap.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.heaps.p04"
+        },
+        {
+          "title": "Kth Smallest Element",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/02.Medium/02.KthSmallestElement.md",
+          "concept_id": null,
+          "id": "dsa_sheet.heaps.p05"
+        },
+        {
+          "title": "Connect Sticks",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/03.Hard/02.MinCostToconnectStricks.md",
+          "concept_id": null,
+          "id": "dsa_sheet.heaps.p06"
+        },
+        {
+          "title": "Binary max Heap",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/01.Basics/02.BinaryMaxHeap.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.heaps.p07"
+        },
+        {
+          "title": "Sort Almost Sorted Array",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/02.Medium/03.SortKSortedArray.md",
+          "concept_id": null,
+          "id": "dsa_sheet.heaps.p08"
+        },
+        {
+          "title": "Kth Largest in a Stream",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/03.Hard/03.KthLargestElementInAStream.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.heaps.p09"
+        },
+        {
+          "title": "Is Array a Min Heap",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/11.Heaps/01.Basics/03.IsArrayMinHeap.md",
+          "concept_id": "dsa.heap.binary_heap",
+          "id": "dsa_sheet.heaps.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.greedy",
+      "name": "Greedy",
+      "problems": [
+        {
+          "title": "Assign Cookies",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": "https://leetcode.com/problems/assign-cookies",
+          "source_path": "01.data_structures_algorithms/12.Greedy/01.Easy/01.AssignCookies.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p01"
+        },
+        {
+          "title": "N Meetings",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/12.Greedy/02.Medium/01.NMeetings.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p02"
+        },
+        {
+          "title": "Fractional Knapsack",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/12.Greedy/01.Easy/02.FractionalKnapsack.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p03"
+        },
+        {
+          "title": "Jump Game",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/jump-game",
+          "source_path": "01.data_structures_algorithms/12.Greedy/02.Medium/02.JumpGame.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p04"
+        },
+        {
+          "title": "Minimum Coins",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/12.Greedy/01.Easy/03.MinimumCoins.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p05"
+        },
+        {
+          "title": "Jump Game II",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/jump-game-ii",
+          "source_path": "01.data_structures_algorithms/12.Greedy/02.Medium/03.JumpGameII.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p06"
+        },
+        {
+          "title": "Lemonade Changes",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": "https://leetcode.com/problems/lemonade-change",
+          "source_path": "01.data_structures_algorithms/12.Greedy/01.Easy/04.LemonadeChange.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p07"
+        },
+        {
+          "title": "Minimum Platforms for Trains",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/12.Greedy/02.Medium/04.MinPlatforms.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p08"
+        },
+        {
+          "title": "Valid Parenthesis",
+          "difficulty": "Easy",
+          "pattern": "Easy",
+          "leetcode_url": "https://leetcode.com/problems/valid-parenthesis-string",
+          "source_path": "01.data_structures_algorithms/12.Greedy/01.Easy/05.ValidParenthesis.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p09"
+        },
+        {
+          "title": "Job Sequencing",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/12.Greedy/02.Medium/05.JobSequencing.md",
+          "concept_id": null,
+          "id": "dsa_sheet.greedy.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.binary_trees",
+      "name": "Binary Trees",
+      "problems": [
+        {
+          "title": "Introductions",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/01.Basics/01.Introduction.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p01"
+        },
+        {
+          "title": "Max Depth of BT",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/maximum-depth-of-binary-tree",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/02.Medium/01.MaxDepth.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p02"
+        },
+        {
+          "title": "Root to Node Path",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/03.Hard/01.PathFromNodeToLeaf.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p03"
+        },
+        {
+          "title": "Binary Trees in C++",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/01.Basics/02.BTinCpp.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p04"
+        },
+        {
+          "title": "Is BT Balanced?",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/balanced-binary-tree",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/02.Medium/02.BalancedBinaryTree.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p05"
+        },
+        {
+          "title": "Lowerst Common Ancestor",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/03.Hard/02.LCA.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p06"
+        },
+        {
+          "title": "Preorder - Recursive",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": "https://leetcode.com/problems/binary-tree-preorder-traversal",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/01.Basics/03.Preorder.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p07"
+        },
+        {
+          "title": "Diameter of BT",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/diameter-of-binary-tree",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/02.Medium/03.DiameterOfTree.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p08"
+        },
+        {
+          "title": "Maximum Width of BT",
+          "difficulty": "Hard",
+          "pattern": "Hard",
+          "leetcode_url": "https://leetcode.com/problems/maximum-width-of-binary-tree",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/03.Hard/03.MaxWidth.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p09"
+        },
+        {
+          "title": "Inorder - Recursive",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": "https://leetcode.com/problems/binary-tree-inorder-traversal",
+          "source_path": "01.data_structures_algorithms/13.Binary_Trees/01.Basics/04.Inorder.md",
+          "concept_id": null,
+          "id": "dsa_sheet.binary_trees.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.bst",
+      "name": "Binary Search Trees",
+      "problems": [
+        {
+          "title": "Introduction",
+          "difficulty": "Easy",
+          "pattern": "Intro",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/01.Intro/01.Introduction.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p01"
+        },
+        {
+          "title": "Ceiling of K in BST",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/01.CeilOfK.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p02"
+        },
+        {
+          "title": "Search in BST",
+          "difficulty": "Easy",
+          "pattern": "Intro",
+          "leetcode_url": "https://leetcode.com/problems/search-in-a-binary-search-tree",
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/01.Intro/02.Search.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p03"
+        },
+        {
+          "title": "Floor of K in BST",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/02.FloorOfK.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p04"
+        },
+        {
+          "title": "Find Min / Max",
+          "difficulty": "Easy",
+          "pattern": "Intro",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/01.Intro/03.MinMax.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p05"
+        },
+        {
+          "title": "Insertion into BST",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/insert-into-a-binary-search-tree",
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/03.InsertIntoBST.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p06"
+        },
+        {
+          "title": "Delete Node from BST",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/delete-node-in-a-bst",
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/04.DeleteNode.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p07"
+        },
+        {
+          "title": "Find Kth Smallest & Largest",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/kth-smallest-element-in-a-bst",
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/05.KMinMax.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p08"
+        },
+        {
+          "title": "Validate a BST",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/validate-binary-search-tree",
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/06.ValidateBST.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p09"
+        },
+        {
+          "title": "Least Common Ancestor",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-search-tree",
+          "source_path": "01.data_structures_algorithms/14.Binary_Search_Trees/02.Medium/07.LCA.md",
+          "concept_id": null,
+          "id": "dsa_sheet.bst.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.graphs",
+      "name": "Graphs",
+      "problems": [
+        {
+          "title": "Introduction",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/01.Basics/01.Introduction.md",
+          "concept_id": null,
+          "id": "dsa_sheet.graphs.p01"
+        },
+        {
+          "title": "Number of Provinces",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/number-of-provinces",
+          "source_path": "01.data_structures_algorithms/15.Graphs/02.Medium/01.Provinces.md",
+          "concept_id": null,
+          "id": "dsa_sheet.graphs.p02"
+        },
+        {
+          "title": "Graphs in CPP",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/01.Basics/02.GraphInCpp.md",
+          "concept_id": null,
+          "id": "dsa_sheet.graphs.p03"
+        },
+        {
+          "title": "Rotten Oranges",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/rotting-oranges",
+          "source_path": "01.data_structures_algorithms/15.Graphs/02.Medium/02.RottenOranges.md",
+          "concept_id": "dsa.graph.bfs",
+          "id": "dsa_sheet.graphs.p04"
+        },
+        {
+          "title": "Graphs in Java",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/01.Basics/03.GraphInJava.md",
+          "concept_id": null,
+          "id": "dsa_sheet.graphs.p05"
+        },
+        {
+          "title": "Flood Fill",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": "https://leetcode.com/problems/flood-fill",
+          "source_path": "01.data_structures_algorithms/15.Graphs/02.Medium/03.FloodFill.md",
+          "concept_id": "dsa.graph.dfs",
+          "id": "dsa_sheet.graphs.p06"
+        },
+        {
+          "title": "Graphs in Javascript",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/01.Basics/04.GraphInJs.md",
+          "concept_id": null,
+          "id": "dsa_sheet.graphs.p07"
+        },
+        {
+          "title": "Detect Cycle in Undirected Graph - BFS",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/02.Medium/04.CycleInUndirected.md",
+          "concept_id": "dsa.graph.bfs",
+          "id": "dsa_sheet.graphs.p08"
+        },
+        {
+          "title": "Connected Components in Graph",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/01.Basics/05.ConnectedComponents.md",
+          "concept_id": "dsa.graph.dfs",
+          "id": "dsa_sheet.graphs.p09"
+        },
+        {
+          "title": "Detect Cycle in Undirected Graph - DFS",
+          "difficulty": "Medium",
+          "pattern": "Medium",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/15.Graphs/02.Medium/05.CycleInUndirectedII.md",
+          "concept_id": "dsa.graph.dfs",
+          "id": "dsa_sheet.graphs.p10"
+        }
+      ]
+    },
+    {
+      "id": "dsa_sheet.dp",
+      "name": "Dynamic Programming",
+      "problems": [
+        {
+          "title": "Introduction",
+          "difficulty": "Easy",
+          "pattern": "Basics",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/16.Dynamic_Programming/01.Basics/01.Introduction.md",
+          "concept_id": null,
+          "id": "dsa_sheet.dp.p01"
+        },
+        {
+          "title": "Climbing Stairs",
+          "difficulty": "Easy",
+          "pattern": "1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/16.Dynamic_Programming/02.1D/01.ClimbingStairs.md",
+          "concept_id": "dsa.dp.memoization",
+          "id": "dsa_sheet.dp.p02"
+        },
+        {
+          "title": "Frog Jump",
+          "difficulty": "Easy",
+          "pattern": "1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/16.Dynamic_Programming/02.1D/02.FrogJump.md",
+          "concept_id": "dsa.dp.memoization",
+          "id": "dsa_sheet.dp.p03"
+        },
+        {
+          "title": "Frog Jump II",
+          "difficulty": "Easy",
+          "pattern": "1D",
+          "leetcode_url": null,
+          "source_path": "01.data_structures_algorithms/16.Dynamic_Programming/02.1D/03.FrogJumpII.md",
+          "concept_id": "dsa.dp.memoization",
+          "id": "dsa_sheet.dp.p04"
+        }
+      ]
+    }
+  ]
+}

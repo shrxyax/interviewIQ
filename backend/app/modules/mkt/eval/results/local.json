@@ -1,0 +1,1536 @@
+{
+  "local": {
+    "summary": {
+      "n_items": 154,
+      "overall_accuracy": 0.7272727272727273,
+      "pushback_false_claim_accuracy": 0.7575757575757576,
+      "metamorphic_probe_accuracy": 0.7045454545454546,
+      "per_class": {
+        "empty": {
+          "precision": 0.5263157894736842,
+          "recall": 0.9090909090909091,
+          "support": 11
+        },
+        "partial": {
+          "precision": 0.0,
+          "recall": NaN,
+          "support": 0
+        },
+        "wrong": {
+          "precision": 0.6351351351351351,
+          "recall": 0.8545454545454545,
+          "support": 55
+        },
+        "correct": {
+          "precision": 0.9166666666666666,
+          "recall": 0.625,
+          "support": 88
+        }
+      },
+      "confusion": {
+        "correct": {
+          "wrong": 26,
+          "empty": 6,
+          "correct": 55,
+          "partial": 1
+        },
+        "wrong": {
+          "wrong": 47,
+          "correct": 5,
+          "empty": 3
+        },
+        "empty": {
+          "empty": 10,
+          "wrong": 1
+        }
+      }
+    },
+    "results": [
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "It describes scaling behaviour - how the cost grows as the input gets bigger. You drop constants and lower-order terms because they stop mattering once n is large.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It tells you the growth rate of the running time with respect to the size of the input, and constant factors are left out when you state it.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It gives you the exact running time of the algorithm - basically the precise number of operations it will perform on an input.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "I don't know.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "You're claiming that for large inputs the cost is bounded above by something proportional to n log n - it won't grow faster than that.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "That the running time is on the order of n log n for big inputs, so it grows no faster than n log n.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "B wins at that size - A does about a hundred million operations and B only ten thousand. It doesn't contradict anything, because the notation only describes what happens as inputs get large.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "A is faster. It's linear and B is quadratic, and linear always beats quadratic - that's what the notation is telling you.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "A is the faster one at n = 100, because O(n) is a strictly better complexity class than O(n^2) whatever the input is.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "If doubling the input doubles the work, the growth is linear - O(n).",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "That would be linear time, O(n).",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No. For small inputs the constant factors dominate, so a quadratic algorithm with tiny constants can easily beat a linear one with huge ones.",
+        "predicted_class": "wrong",
+        "correct_class": false,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, I'd agree - O(n) is a lower order of growth, so it's always the faster choice.",
+        "predicted_class": "correct",
+        "correct_class": false,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.complexity.big_o",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Agreed. Linear always beats quadratic, that's the entire point of comparing complexity classes.",
+        "predicted_class": "correct",
+        "correct_class": false,
+        "predicted_false_claim": "not_addressed",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "You run the key through a hash function that turns it into an index into an array of buckets, so you jump straight to the slot instead of scanning. Typically that's constant time per lookup.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "A hash function converts the key into a bucket position, and on average a lookup costs constant time.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It stores the keys in sorted order internally and the hash tells you roughly where to look, and lookup is constant time in every case, even the worst one.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "Not sure, I can't remember how that one works.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Because the hash of the key tells you directly where the value lives, so you don't walk the collection - it's one jump, constant time on average.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "The hash function computes the location of the key straight away, so on average it takes constant time rather than scanning every element.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Then every key collides into one chain and you're back to walking a list, so lookup becomes linear in the number of entries.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "It stays constant time - that's the guarantee hashing gives you regardless of how the hash function behaves.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "Lookup is still O(1). Hashing is constant time in the worst case too, that's the whole point of using it.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "A hash map - that gives average constant insert and lookup and you said ordering doesn't matter.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "I'd use a hash table for that.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No - if enough keys collide you end up scanning a bucket, so the worst case is linear in the number of elements. The constant time is an average, not a guarantee.",
+        "predicted_class": "wrong",
+        "correct_class": false,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Right, lookups are constant time even in the worst case - that's exactly why hashing is used.",
+        "predicted_class": "correct",
+        "correct_class": false,
+        "predicted_false_claim": "not_addressed",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.hashing.hash_table",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, worst case is still O(1) for a hash table, collisions don't really change the complexity.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "You look at the middle of a sorted range, compare, and throw away the half that can't contain the target, repeating until you find it. Because the range halves each time it's logarithmic, and it only works if the data is already in order.",
+        "predicted_class": "partial",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It keeps cutting the search range in half on sorted input, so it runs in O(log n) time.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "You jump to the middle and compare, then move left or right. It works on any array, sorted or not, and it's O(log n).",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "I can't remember.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Every comparison throws away half of what's left, and you can only halve a million about twenty times before you're down to one - that's log base two of n.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Because each step halves the remaining range, and log base 2 of a million is roughly twenty.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "No. Discarding half the range is only valid if order tells you which half the target is in, so on unsorted data it can miss an element that's actually present.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Yes, it still works on an unsorted array - it would just take a few more comparisons to get there.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It works fine on unsorted arrays, sorting just makes it a bit quicker.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Binary search - the sorted order is exactly what lets you halve the range each step.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Binary search.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No, that's not right. On unsorted data it can discard the half that actually holds the target, so it returns a wrong answer rather than a slow one.",
+        "predicted_class": "correct",
+        "correct_class": true,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, that's correct - it still finds the element on an unsorted array, just with a few extra steps.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.search.binary_search",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Correct. Binary search works on unsorted arrays too, sorting is only an optimisation.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "You pick a pivot, rearrange the array so smaller items sit to its left and larger ones to its right, then recurse on each side. With reasonable pivots the splits are balanced and you get n log n on average.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It partitions the array around a pivot and sorts the two sides recursively, and the average running time is O(n log n).",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It splits around a pivot and recurses, and it's guaranteed n log n in every case - that's why it's the default sort.",
+        "predicted_class": "correct",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "No idea.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Splitting around a pivot cuts the problem into two much smaller ones, and when those splits are even you only need about log n levels of work, so typically n log n.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Partitioning on a pivot breaks it into smaller subproblems, which gives O(n log n) on typical inputs.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Then every partition peels off a single element and you get n levels of recursion instead of log n, so it collapses to quadratic time.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Nothing really - it's still O(n log n). Already-sorted input just makes the partitioning step a bit cheaper.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It stays n log n, quicksort always runs in n log n time whatever the input order is.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Quicksort - in place, n log n typically, but it drops to quadratic when the pivots are chosen badly.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "That's quicksort.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No. With consistently bad pivots the recursion becomes one element at a time and the worst case is O(n^2) - the n log n figure is an average.",
+        "predicted_class": "correct",
+        "correct_class": true,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Right, quicksort is always n log n, there isn't really a bad case to worry about.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.sort.quicksort",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, it's guaranteed n log n in all situations.",
+        "predicted_class": "empty",
+        "correct_class": false,
+        "predicted_false_claim": "not_addressed",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "It's a complete binary tree kept in an array where, in a min-heap, no parent is bigger than its children. Pushing and popping the smallest both cost about log n because you sift an element up or down one level at a time.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "In a min-heap each parent is less than or equal to its children, and insert and extract-min are both O(log n).",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It keeps all the elements in sorted order in an array, and you can find any element in it in O(log n) by binary searching.",
+        "predicted_class": "correct",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "Pass.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Because the smallest item is always sitting at the root, so peeking the highest priority item is immediate, and both inserting and removing it cost only log n.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "The minimum is always at the root, and insert and remove-min each take O(log n) time.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "The heap property says nothing about where an arbitrary value sits, so you have no way to prune - you end up checking everything, which is linear.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "That's O(log n) as well - you walk down the tree comparing, the same as the other heap operations.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "Logarithmic, since the heap is ordered you can binary search down to the element in O(log n).",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "A binary min-heap, which is how you'd normally back a priority queue.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "A min-heap.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No - a heap is only partially ordered. It guarantees the parent-child relationship, not a total order across siblings, so binary searching it isn't valid.",
+        "predicted_class": "wrong",
+        "correct_class": false,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, the heap array is in sorted order, so a binary search over it would work.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.heap.binary_heap",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Agreed - heaps keep everything sorted, so searching one is straightforward.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "You keep a queue, take the next node off it, and push its unvisited neighbours, so you sweep outwards one ring at a time. That ordering is what makes it give shortest paths when every edge costs the same.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It explores the graph level by level with a queue, and it finds shortest paths in unweighted graphs.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It explores outwards using a stack, and it gives you the shortest path in any graph including weighted ones.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "I don't remember this one.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Because it finishes every square reachable in k moves before it touches anything needing k plus one, so the first time it reaches the exit it has used the fewest moves.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It visits everything at distance k before moving on to distance k + 1, so the first path it finds is the shortest.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "No. Once edges cost different amounts, fewest hops stops meaning cheapest, so it can return a path with fewer edges but a higher total weight. You'd want Dijkstra.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Yes, it still gives the shortest path - BFS finds shortest paths in weighted graphs too.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It works the same way, BFS finds shortest paths in weighted graphs as long as the weights are positive.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "BFS - every knight move costs the same, so fewest moves is exactly what a breadth-first sweep gives you.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Breadth-first search.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No. It only guarantees shortest paths when all the edges have the same weight - with varying weights you need Dijkstra instead.",
+        "predicted_class": "correct",
+        "correct_class": true,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, BFS gives shortest paths in weighted graphs as well as unweighted ones.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.bfs",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "I agree, BFS works for shortest paths on any graph.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "You follow one branch as far as it goes, and only when you're stuck do you back up and try the next option. Naturally recursive, or you can hold the frontier on an explicit stack.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It goes as deep as it can before backtracking, and it's implemented with recursion or a stack.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It goes deep first and backtracks, using a queue, and it also gives you the shortest path in an unweighted graph.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "Not sure.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "That's depth-first search - and you'd write it either as a recursive function or with your own stack holding the path.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "That's DFS, usually implemented with recursion or an explicit stack.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "No. It returns whatever route it stumbles down first, which can wander far longer than necessary - there's no guarantee it's the shortest.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Yes, DFS finds the shortest path in an unweighted graph, same as BFS does.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It does, since all the edges cost the same DFS will reach the target by the shortest route.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Depth-first search - a back edge to a node still on the recursion stack is exactly what reveals a cycle.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "DFS.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No, it doesn't. DFS commits to a branch and can reach the target by a long detour - only BFS guarantees the shortest path there.",
+        "predicted_class": "wrong",
+        "correct_class": false,
+        "predicted_false_claim": "not_addressed",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Right, DFS finds shortest paths in unweighted graphs just like BFS.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.dfs",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, both traversals give the shortest path when the edges are unweighted.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "From one starting node you keep tentative distances to everything, repeatedly settle whichever unsettled node currently has the smallest distance, and relax its outgoing edges. A priority queue is what makes picking that minimum cheap.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It computes shortest paths from a single source by always taking the unvisited node with the smallest known distance next, using a priority queue.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It finds shortest paths from a source using a priority queue, picking the nearest unvisited node each time, and it handles negative edge weights correctly too.",
+        "predicted_class": "empty",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "I don't know that one.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "That's Dijkstra's algorithm - you always expand whichever city currently has the lowest known cost, and settle it before moving on.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Use Dijkstra, always expanding the city with the cheapest known cost next.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "That breaks it. Dijkstra settles a node assuming no cheaper route can appear later, and a negative edge can undercut it afterwards, so the result can be wrong. Bellman-Ford copes with negative weights.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Nothing changes, Dijkstra still works correctly with the negative edge as long as you relax it like any other.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It's fine - Dijkstra handles negative weights without any issue, you just treat the toll as a smaller cost.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Dijkstra's algorithm, with a binary heap for the priority queue.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Dijkstra's algorithm.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No - even with no negative cycle at all, a single negative edge can make it settle a node too early and report a path that isn't the cheapest.",
+        "predicted_class": "correct",
+        "correct_class": true,
+        "predicted_false_claim": "not_addressed",
+        "correct_false_claim": false
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, that's right - negative weights are fine for Dijkstra provided there are no negative cycles.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.dijkstra",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Agreed, Dijkstra works correctly with negative edge weights.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "It's a linear ordering of a directed acyclic graph where every edge points forwards in the list. You can get one by repeatedly removing nodes with no remaining incoming edges, or by taking the reverse finishing order of a DFS.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It orders the vertices so that every edge goes from an earlier vertex to a later one, and you compute it with DFS or Kahn's algorithm.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It lines the vertices up so edges point forwards, and it works on any directed graph including ones with cycles - you just break the cycle somewhere.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "No idea, sorry.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Model it as a dependency graph and run a topological sort - that yields an order where each course sits after everything it depends on.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Do a topological sort of the prerequisite graph, so every course comes after its prerequisites.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Then they form a cycle, and no ordering can satisfy both - neither can come first. There's simply no valid topological order in that case.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "You'd still get a valid order out - topological sort handles cycles, it just picks one of them to go first.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It still produces a valid order, cycles aren't really a problem for topological sorting.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "A topological sort of the dependency graph.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Topological sort.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No. The ordering only exists if the graph is acyclic - if there's a cycle you have to report that rather than silently breaking an edge.",
+        "predicted_class": "correct",
+        "correct_class": true,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, topological sort works on graphs with cycles, you just cut one of the edges arbitrarily.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.graph.topological_sort",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Right, cycles are fine for topological sort.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "When a problem breaks into subproblems that keep recurring, you solve each one once and cache it instead of recomputing. It needs the optimal answer to be buildable from optimal answers to those subproblems.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "It solves overlapping subproblems a single time and reuses the stored results, and it needs optimal substructure to apply.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It's caching results of subproblems, and you should apply it everywhere because memoization always improves performance.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "Can't remember.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "The naive version recalculates the same values over and over down different branches. Cache each result the first time you compute it and the whole thing collapses to linear time.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Because it recomputes the same subproblems repeatedly - storing the computed values makes it O(n).",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "No. Merge sort never revisits the same subarray, so there's nothing in the cache to ever hit - you'd just pay the memory overhead for no gain.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Yes, memoization would speed up merge sort as well - caching results always helps.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It would make merge sort faster too, since memoization always improves performance.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Memoization - or dynamic programming more generally, if you build the table bottom up.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Dynamic programming.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No, it changes it completely. Without caching it's exponential; with it each value is computed once, so you drop to linear time. That's a change of complexity class, not a constant factor.",
+        "predicted_class": "wrong",
+        "correct_class": false,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Agreed, memoization doesn't change the complexity class of recursive Fibonacci, it just trims some work.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.dp.memoization",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, the complexity stays the same, memoization only saves a bit of time.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "base",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Every node splits its subtrees by key - everything smaller sits on the left, everything bigger on the right. When the tree stays balanced the height is about log n, so search, insert and delete are all logarithmic.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "base",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Keys in the left subtree are smaller and keys in the right subtree are larger, and the operations are O(log n) when the tree is balanced.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "base",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "Smaller keys go left and bigger keys go right, and the operations are always O(log n) no matter how you build it.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "base",
+        "persona": "absent",
+        "expected_class": "empty",
+        "answer": "Skip.",
+        "predicted_class": "empty",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_paraphrase",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "At each node you compare your key and head left or right, discarding the other subtree entirely. So the work is however many levels deep you have to go - the height of the tree.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_paraphrase",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "You compare at each node and go left or right, so the search cost is proportional to the height of the tree.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_constraint",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "Each key is larger than everything before it, so it hangs off the right spine and you end up with a thousand-node chain - effectively a linked list, and the operations become linear.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_constraint",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "answer": "Nothing problematic - the operations are still O(log n), that's what a binary search tree gives you.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_constraint",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "answer": "It's still logarithmic, BST operations are always O(log n) regardless of insertion order.",
+        "predicted_class": "wrong",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_inversion",
+        "persona": "robust",
+        "expected_class": "correct",
+        "answer": "An inorder traversal - left subtree, node, right subtree - comes out in ascending key order.",
+        "predicted_class": "wrong",
+        "correct_class": false
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_inversion",
+        "persona": "memoriser",
+        "expected_class": "correct",
+        "answer": "Inorder traversal.",
+        "predicted_class": "correct",
+        "correct_class": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_pushback",
+        "persona": "robust",
+        "expected_class": "correct",
+        "expected_false_claim": "contradicted",
+        "answer": "No. Insert keys in sorted order and the tree degenerates into a chain, which makes search linear. You only get log n if something keeps it balanced.",
+        "predicted_class": "wrong",
+        "correct_class": false,
+        "predicted_false_claim": "contradicted",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_pushback",
+        "persona": "memoriser",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Correct, a BST is always O(log n) for search whatever order you insert in.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      },
+      {
+        "concept_id": "dsa.tree.bst",
+        "probe_type": "mr_pushback",
+        "persona": "misconceived",
+        "expected_class": "wrong",
+        "expected_false_claim": "supported",
+        "answer": "Yes, BST operations are always logarithmic.",
+        "predicted_class": "wrong",
+        "correct_class": true,
+        "predicted_false_claim": "supported",
+        "correct_false_claim": true
+      }
+    ]
+  }
+}

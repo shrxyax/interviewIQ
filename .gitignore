@@ -46,3 +46,13 @@ env/
 
 # Misc
 .idea/
+
+# Playwright
+frontend1/test-results/
+frontend1/playwright-report/
+
+# Database
+backend/*.db
+
+# Workspace files
+*.code-workspace

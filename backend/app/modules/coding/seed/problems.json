@@ -1,0 +1,243 @@
+{
+  "problems": [
+    {
+      "id": "code.two_sum", "title": "Two Sum", "difficulty": "Easy",
+      "statement": "Given an array of integers `nums` and an integer `target`, return the indices of the two numbers that add up to `target`, as a list `[i, j]` with i < j. Assume exactly one solution exists.",
+      "signature": "def solve(nums, target):",
+      "starter_code": "def solve(nums, target):\n    # return [i, j]\n    pass\n",
+      "sample_tests": [{"args": [[2, 7, 11, 15], 9], "expected": [0, 1]}],
+      "hidden_tests": [
+        {"args": [[3, 2, 4], 6], "expected": [1, 2]},
+        {"args": [[3, 3], 6], "expected": [0, 1]},
+        {"args": [[-1, -2, -3, -4, -5], -8], "expected": [2, 4]}
+      ]
+    },
+    {
+      "id": "code.valid_parens", "title": "Valid Parentheses", "difficulty": "Easy",
+      "statement": "Given a string containing only `()[]{}`, return True if every bracket is correctly closed and nested, False otherwise.",
+      "signature": "def solve(s):",
+      "starter_code": "def solve(s):\n    pass\n",
+      "sample_tests": [{"args": ["()[]{}"], "expected": true}],
+      "hidden_tests": [
+        {"args": ["(]"], "expected": false},
+        {"args": ["{[]}"], "expected": true},
+        {"args": [""], "expected": true},
+        {"args": ["((("], "expected": false}
+      ]
+    },
+    {
+      "id": "code.binary_search", "title": "Binary Search", "difficulty": "Easy",
+      "statement": "Given a sorted array `nums` and a target, return the index of `target`, or -1 if it is not present. Must run in O(log n).",
+      "signature": "def solve(nums, target):",
+      "starter_code": "def solve(nums, target):\n    pass\n",
+      "sample_tests": [{"args": [[-1, 0, 3, 5, 9, 12], 9], "expected": 4}],
+      "hidden_tests": [
+        {"args": [[-1, 0, 3, 5, 9, 12], 2], "expected": -1},
+        {"args": [[], 5], "expected": -1},
+        {"args": [[5], 5], "expected": 0}
+      ]
+    },
+    {
+      "id": "code.max_subarray", "title": "Maximum Subarray (Kadane's)", "difficulty": "Medium",
+      "statement": "Given an integer array, return the largest sum of any contiguous subarray.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[-2, 1, -3, 4, -1, 2, 1, -5, 4]], "expected": 6}],
+      "hidden_tests": [
+        {"args": [[1]], "expected": 1},
+        {"args": [[5, 4, -1, 7, 8]], "expected": 23},
+        {"args": [[-1, -2, -3]], "expected": -1}
+      ]
+    },
+    {
+      "id": "code.reverse_string", "title": "Reverse a String", "difficulty": "Easy",
+      "statement": "Return the input string reversed.",
+      "signature": "def solve(s):",
+      "starter_code": "def solve(s):\n    pass\n",
+      "sample_tests": [{"args": ["hello"], "expected": "olleh"}],
+      "hidden_tests": [
+        {"args": [""], "expected": ""},
+        {"args": ["a"], "expected": "a"},
+        {"args": ["racecar"], "expected": "racecar"}
+      ]
+    },
+    {
+      "id": "code.fibonacci", "title": "Fibonacci Number", "difficulty": "Easy",
+      "statement": "Return the n-th Fibonacci number (0-indexed: F(0)=0, F(1)=1).",
+      "signature": "def solve(n):",
+      "starter_code": "def solve(n):\n    pass\n",
+      "sample_tests": [{"args": [5], "expected": 5}],
+      "hidden_tests": [
+        {"args": [0], "expected": 0},
+        {"args": [1], "expected": 1},
+        {"args": [10], "expected": 55},
+        {"args": [20], "expected": 6765}
+      ]
+    },
+    {
+      "id": "code.climbing_stairs", "title": "Climbing Stairs", "difficulty": "Easy",
+      "statement": "You can climb 1 or 2 steps at a time. Return the number of distinct ways to climb to the top of `n` stairs.",
+      "signature": "def solve(n):",
+      "starter_code": "def solve(n):\n    pass\n",
+      "sample_tests": [{"args": [2], "expected": 2}],
+      "hidden_tests": [
+        {"args": [3], "expected": 3},
+        {"args": [5], "expected": 8},
+        {"args": [1], "expected": 1}
+      ]
+    },
+    {
+      "id": "code.merge_sorted_arrays", "title": "Merge Two Sorted Arrays", "difficulty": "Easy",
+      "statement": "Given two sorted integer arrays, return a single sorted array containing all elements of both.",
+      "signature": "def solve(a, b):",
+      "starter_code": "def solve(a, b):\n    pass\n",
+      "sample_tests": [{"args": [[1, 3, 5], [2, 4, 6]], "expected": [1, 2, 3, 4, 5, 6]}],
+      "hidden_tests": [
+        {"args": [[], [1, 2]], "expected": [1, 2]},
+        {"args": [[1, 2], []], "expected": [1, 2]},
+        {"args": [[5, 6, 7], [1, 2, 3]], "expected": [1, 2, 3, 5, 6, 7]}
+      ]
+    },
+    {
+      "id": "code.first_unique_char", "title": "First Unique Character", "difficulty": "Easy",
+      "statement": "Given a string, return the index of its first non-repeating character, or -1 if none exists.",
+      "signature": "def solve(s):",
+      "starter_code": "def solve(s):\n    pass\n",
+      "sample_tests": [{"args": ["leetcode"], "expected": 0}],
+      "hidden_tests": [
+        {"args": ["loveleetcode"], "expected": 2},
+        {"args": ["aabb"], "expected": -1},
+        {"args": ["z"], "expected": 0}
+      ]
+    },
+    {
+      "id": "code.is_anagram", "title": "Valid Anagram", "difficulty": "Easy",
+      "statement": "Given two strings, return True if the second is an anagram of the first (same letters, same counts), False otherwise.",
+      "signature": "def solve(s, t):",
+      "starter_code": "def solve(s, t):\n    pass\n",
+      "sample_tests": [{"args": ["anagram", "nagaram"], "expected": true}],
+      "hidden_tests": [
+        {"args": ["rat", "car"], "expected": false},
+        {"args": ["", ""], "expected": true},
+        {"args": ["a", "ab"], "expected": false}
+      ]
+    },
+    {
+      "id": "code.contains_duplicate", "title": "Contains Duplicate", "difficulty": "Easy",
+      "statement": "Given an integer array, return True if any value appears at least twice, False if every element is distinct.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[1, 2, 3, 1]], "expected": true}],
+      "hidden_tests": [
+        {"args": [[1, 2, 3, 4]], "expected": false},
+        {"args": [[]], "expected": false},
+        {"args": [[1, 1, 1, 1]], "expected": true}
+      ]
+    },
+    {
+      "id": "code.move_zeroes", "title": "Move Zeroes", "difficulty": "Easy",
+      "statement": "Given an integer array, return a new array with all zeroes moved to the end, preserving the relative order of non-zero elements.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[0, 1, 0, 3, 12]], "expected": [1, 3, 12, 0, 0]}],
+      "hidden_tests": [
+        {"args": [[0]], "expected": [0]},
+        {"args": [[1, 2, 3]], "expected": [1, 2, 3]},
+        {"args": [[0, 0, 1]], "expected": [1, 0, 0]}
+      ]
+    },
+    {
+      "id": "code.longest_common_prefix", "title": "Longest Common Prefix", "difficulty": "Easy",
+      "statement": "Given a list of strings, return the longest common prefix shared by all of them. Return \"\" if there is none.",
+      "signature": "def solve(strs):",
+      "starter_code": "def solve(strs):\n    pass\n",
+      "sample_tests": [{"args": [["flower", "flow", "flight"]], "expected": "fl"}],
+      "hidden_tests": [
+        {"args": [["dog", "racecar", "car"]], "expected": ""},
+        {"args": [["single"]], "expected": "single"},
+        {"args": [["", "b"]], "expected": ""}
+      ]
+    },
+    {
+      "id": "code.power_of_two", "title": "Power of Two", "difficulty": "Easy",
+      "statement": "Given an integer n, return True if it is a power of two, False otherwise.",
+      "signature": "def solve(n):",
+      "starter_code": "def solve(n):\n    pass\n",
+      "sample_tests": [{"args": [16], "expected": true}],
+      "hidden_tests": [
+        {"args": [3], "expected": false},
+        {"args": [1], "expected": true},
+        {"args": [0], "expected": false},
+        {"args": [-8], "expected": false}
+      ]
+    },
+    {
+      "id": "code.single_number", "title": "Single Number", "difficulty": "Medium",
+      "statement": "Given an integer array where every element appears twice except for one, return that single element. Aim for O(n) time and O(1) extra space.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[2, 2, 1]], "expected": 1}],
+      "hidden_tests": [
+        {"args": [[4, 1, 2, 1, 2]], "expected": 4},
+        {"args": [[1]], "expected": 1}
+      ]
+    },
+    {
+      "id": "code.valid_palindrome", "title": "Valid Palindrome", "difficulty": "Easy",
+      "statement": "Given a string, return True if it is a palindrome considering only alphanumeric characters and ignoring case, False otherwise.",
+      "signature": "def solve(s):",
+      "starter_code": "def solve(s):\n    pass\n",
+      "sample_tests": [{"args": ["A man, a plan, a canal: Panama"], "expected": true}],
+      "hidden_tests": [
+        {"args": ["race a car"], "expected": false},
+        {"args": [""], "expected": true},
+        {"args": ["0P"], "expected": false}
+      ]
+    },
+    {
+      "id": "code.majority_element", "title": "Majority Element", "difficulty": "Medium",
+      "statement": "Given an array of size n, return the element that appears more than n/2 times. It is guaranteed to exist.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[2, 2, 1, 1, 1, 2, 2]], "expected": 2}],
+      "hidden_tests": [
+        {"args": [[3, 2, 3]], "expected": 3},
+        {"args": [[1]], "expected": 1}
+      ]
+    },
+    {
+      "id": "code.missing_number", "title": "Missing Number", "difficulty": "Easy",
+      "statement": "Given an array containing n distinct numbers from the range [0, n], return the one number missing from the range.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[3, 0, 1]], "expected": 2}],
+      "hidden_tests": [
+        {"args": [[0, 1]], "expected": 2},
+        {"args": [[9, 6, 4, 2, 3, 5, 7, 0, 1]], "expected": 8}
+      ]
+    },
+    {
+      "id": "code.sort_colors", "title": "Sort Colors (0s, 1s, 2s)", "difficulty": "Medium",
+      "statement": "Given an array containing only 0s, 1s, and 2s, return it sorted in ascending order.",
+      "signature": "def solve(nums):",
+      "starter_code": "def solve(nums):\n    pass\n",
+      "sample_tests": [{"args": [[2, 0, 2, 1, 1, 0]], "expected": [0, 0, 1, 1, 2, 2]}],
+      "hidden_tests": [
+        {"args": [[2, 0, 1]], "expected": [0, 1, 2]},
+        {"args": [[0]], "expected": [0]}
+      ]
+    },
+    {
+      "id": "code.factorial", "title": "Factorial", "difficulty": "Easy",
+      "statement": "Return n! (the factorial of n). Assume n >= 0.",
+      "signature": "def solve(n):",
+      "starter_code": "def solve(n):\n    pass\n",
+      "sample_tests": [{"args": [5], "expected": 120}],
+      "hidden_tests": [
+        {"args": [0], "expected": 1},
+        {"args": [1], "expected": 1},
+        {"args": [10], "expected": 3628800}
+      ]
+    }
+  ]
+}

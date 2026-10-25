@@ -1,0 +1,789 @@
+{
+  "domain": "dsa",
+  "concepts": [
+    {
+      "id": "dsa.complexity.big_o",
+      "name": "Big-O Notation",
+      "description": "Asymptotic upper bounds on growth rate.",
+      "difficulty": 1,
+      "prereqs": [],
+      "key_facts": [
+        "Big-O describes how running time grows as input size increases",
+        "Constant factors and lower-order terms are ignored in Big-O",
+        "Big-O describes behaviour for large inputs"
+      ],
+      "misconceptions": [
+        "Big-O gives the exact running time of an algorithm",
+        "An O(n) algorithm is always faster than an O(n^2) algorithm for every input size"
+      ],
+      "probes": {
+        "base": {
+          "question": "What does Big-O notation tell you about an algorithm?",
+          "must_entail": [
+            "Big-O describes how running time grows as input size increases",
+            "Constant factors are ignored in Big-O"
+          ],
+          "min_coverage": 0.5
+        },
+        "mr_paraphrase": {
+          "question": "If I tell you an algorithm is O(n log n), what exactly am I claiming about it?",
+          "must_entail": [
+            "The running time grows at most proportionally to n log n for large inputs"
+          ]
+        },
+        "mr_constraint": {
+          "question": "Algorithm A is O(n) but each step costs a million operations. Algorithm B is O(n^2) with one operation per step. For n = 100, which is faster, and does that contradict Big-O?",
+          "must_entail": [
+            "Algorithm B is faster for n = 100",
+            "Big-O only describes behaviour for large inputs"
+          ],
+          "must_not_entail": [
+            "Algorithm A is faster for n = 100"
+          ]
+        },
+        "mr_inversion": {
+          "question": "An algorithm's running time roughly doubles whenever the input size doubles. What is its likely time complexity?",
+          "must_entail": [
+            "The time complexity is linear, O(n)"
+          ],
+          "keywords": ["o(n)", "linear"]
+        },
+        "mr_pushback": {
+          "question": "I'd argue an O(n) algorithm is always faster than an O(n^2) one, for any input size. Wouldn't you agree?",
+          "false_claim": "An O(n) algorithm is always faster than an O(n^2) algorithm for every input size",
+          "must_entail": [
+            "For small inputs an O(n^2) algorithm can be faster than an O(n) algorithm"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "Here's a new algorithm: it loops over a list of n elements once, and inside that loop it does a second full loop over all n elements again. Roughly how does its running time grow as n gets large, and what Big-O would you assign it?",
+            "must_entail": [
+              "The running time grows proportional to n^2",
+              "This is because there are two nested loops each of size n"
+            ]
+          },
+          {
+            "question": "Two engineers each claim their function is 'fast'. One takes exactly 2n+500 steps, the other takes exactly n^2+5 steps. For very large inputs, which will eventually run faster, and why does Big-O focus on that rather than the exact step counts?",
+            "must_entail": [
+              "The O(n) function is eventually faster for large n",
+              "Big-O ignores constant factors and lower-order terms and focuses on growth for large input sizes"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.hashing.hash_table",
+      "name": "Hash Tables",
+      "description": "Key-value storage via hashing.",
+      "difficulty": 2,
+      "prereqs": ["dsa.complexity.big_o"],
+      "key_facts": [
+        "A hash function maps keys to bucket indices",
+        "Hash table lookup takes O(1) time on average",
+        "Collisions happen when two keys hash to the same bucket",
+        "Worst-case hash table lookup is O(n)"
+      ],
+      "misconceptions": [
+        "Hash table lookup is O(1) even in the worst case",
+        "Hash tables keep keys in sorted order"
+      ],
+      "probes": {
+        "base": {
+          "question": "How does a hash table achieve fast lookups, and what is its time complexity?",
+          "must_entail": [
+            "A hash function maps keys to bucket indices",
+            "Hash table lookup takes O(1) time on average"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "Why is looking up a key in a hash map usually so fast compared to scanning a list?",
+          "must_entail": [
+            "A hash function computes where the key is stored directly",
+            "Lookup takes constant time on average"
+          ]
+        },
+        "mr_constraint": {
+          "question": "What happens to lookup time if a bad hash function sends every key to the same bucket?",
+          "must_entail": [
+            "Lookup degrades to O(n) time"
+          ],
+          "must_not_entail": [
+            "Lookup is still O(1)"
+          ]
+        },
+        "mr_inversion": {
+          "question": "I need O(1) average insert and lookup by key and I don't care about ordering. Which data structure would you use?",
+          "must_entail": [
+            "A hash table should be used"
+          ],
+          "keywords": ["hash"]
+        },
+        "mr_pushback": {
+          "question": "Hash table lookups are O(1) even in the worst case, right? That's the whole point of hashing.",
+          "false_claim": "Hash table lookup is O(1) even in the worst case",
+          "must_entail": [
+            "Worst-case hash table lookup is O(n)"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "You need to store a million phone-book entries and look up a person's number by name almost instantly, without caring about alphabetical order. What data structure fits, and why is the lookup fast on average?",
+            "must_entail": [
+              "A hash table should be used",
+              "A hash function maps the name to a bucket so lookup is O(1) on average"
+            ]
+          },
+          {
+            "question": "Suppose a careless implementation hashes every string to the same bucket index. What happens to lookup speed for that hash table, and why?",
+            "must_entail": [
+              "Lookup degrades to O(n) because all entries collide into one bucket and must be scanned linearly"
+            ],
+            "must_not_entail": [
+              "Lookup stays O(1)"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.search.binary_search",
+      "name": "Binary Search",
+      "description": "Logarithmic search over sorted data.",
+      "difficulty": 1,
+      "prereqs": ["dsa.complexity.big_o"],
+      "key_facts": [
+        "Binary search requires the input to be sorted",
+        "Binary search halves the search range at each step",
+        "Binary search runs in O(log n) time"
+      ],
+      "misconceptions": [
+        "Binary search works correctly on an unsorted array"
+      ],
+      "probes": {
+        "base": {
+          "question": "Explain how binary search works and what its time complexity is.",
+          "must_entail": [
+            "Binary search repeatedly halves the search range",
+            "Binary search runs in O(log n) time",
+            "Binary search requires sorted input"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "Why can binary search find an element in a sorted array of a million items in about 20 steps?",
+          "must_entail": [
+            "Each step halves the remaining search space",
+            "The number of steps is about log base 2 of n"
+          ]
+        },
+        "mr_constraint": {
+          "question": "Would binary search still work if the array were not sorted?",
+          "must_entail": [
+            "Binary search does not work correctly on unsorted data"
+          ],
+          "must_not_entail": [
+            "Binary search works on unsorted arrays"
+          ]
+        },
+        "mr_inversion": {
+          "question": "You have a sorted array and need to find an element in O(log n) time. Which algorithm would you use?",
+          "must_entail": [
+            "Binary search should be used"
+          ],
+          "keywords": ["binary search"]
+        },
+        "mr_pushback": {
+          "question": "Binary search works fine on an unsorted array; it just takes a few more steps. Correct?",
+          "false_claim": "Binary search works correctly on an unsorted array",
+          "must_entail": [
+            "Binary search can return wrong results on unsorted data"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "A sorted array has been rotated at an unknown pivot (e.g. [4,5,6,7,0,1,2]). How would you find a target value in better than O(n) time, and why does this still work despite the rotation?",
+            "must_entail": [
+              "A modified binary search can be used because one half of the array is always sorted",
+              "It still runs in O(log n) time"
+            ]
+          },
+          {
+            "question": "You want to find the smallest index where a sorted array's value becomes greater than or equal to some threshold. What approach gives O(log n), and what key property does it rely on?",
+            "must_entail": [
+              "Binary search can be used",
+              "It relies on the array being sorted so you can discard half the search space each step"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.sort.quicksort",
+      "name": "Quicksort",
+      "description": "Divide-and-conquer sorting around a pivot.",
+      "difficulty": 2,
+      "prereqs": ["dsa.complexity.big_o"],
+      "key_facts": [
+        "Quicksort partitions the array around a pivot",
+        "Quicksort takes O(n log n) time on average",
+        "Quicksort takes O(n^2) time in the worst case"
+      ],
+      "misconceptions": [
+        "Quicksort always runs in O(n log n) time"
+      ],
+      "probes": {
+        "base": {
+          "question": "How does quicksort work, and what is its time complexity?",
+          "must_entail": [
+            "Quicksort partitions elements around a pivot",
+            "Quicksort takes O(n log n) time on average"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "What is the core idea that makes quicksort fast on typical inputs?",
+          "must_entail": [
+            "Partitioning around a pivot splits the problem into smaller subproblems",
+            "Quicksort takes O(n log n) time on average"
+          ]
+        },
+        "mr_constraint": {
+          "question": "What happens to quicksort if the array is already sorted and you always pick the first element as the pivot?",
+          "must_entail": [
+            "Quicksort degrades to O(n^2) time"
+          ],
+          "must_not_entail": [
+            "Quicksort still runs in O(n log n) time"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Name an in-place sorting algorithm that is O(n log n) on average but can degrade to O(n^2).",
+          "must_entail": [
+            "The algorithm is quicksort"
+          ],
+          "keywords": ["quicksort", "quick sort"]
+        },
+        "mr_pushback": {
+          "question": "Quicksort is guaranteed O(n log n), so it never has a bad case. Right?",
+          "false_claim": "Quicksort always runs in O(n log n) time",
+          "must_entail": [
+            "Quicksort takes O(n^2) time in the worst case"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "You need to find the k-th smallest element in an unsorted array without fully sorting it. How could the partitioning idea behind quicksort help you do this faster than a full sort, and what's the expected time complexity?",
+            "must_entail": [
+              "Partition around a pivot and recurse into only the side containing the k-th element",
+              "Expected time is O(n) on average"
+            ]
+          },
+          {
+            "question": "If you always pick the pivot as the true median of the array, how does quicksort's worst case change compared to always picking the first element as pivot?",
+            "must_entail": [
+              "With a median pivot the partitions are balanced and the worst case becomes O(n log n)",
+              "Always picking the first element can degrade to O(n^2) on sorted or adversarial input"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.heap.binary_heap",
+      "name": "Binary Heaps",
+      "description": "Complete binary trees with the heap property; priority queues.",
+      "difficulty": 2,
+      "prereqs": ["dsa.complexity.big_o"],
+      "key_facts": [
+        "In a min-heap every parent is smaller than or equal to its children",
+        "The minimum element of a min-heap is at the root",
+        "Insert and extract-min take O(log n) time",
+        "A heap is only partially ordered"
+      ],
+      "misconceptions": [
+        "A heap keeps all elements in sorted order",
+        "Searching for an arbitrary element in a heap takes O(log n) time"
+      ],
+      "probes": {
+        "base": {
+          "question": "What is a binary heap, and what are the time complexities of its main operations?",
+          "must_entail": [
+            "In a min-heap every parent is smaller than or equal to its children",
+            "Insert and extract-min take O(log n) time"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "Why is a min-heap a good way to implement a priority queue?",
+          "must_entail": [
+            "The minimum element is always at the root",
+            "Insert and remove-min take O(log n) time"
+          ]
+        },
+        "mr_constraint": {
+          "question": "How long does it take to search for an arbitrary value, not the minimum, in a min-heap?",
+          "must_entail": [
+            "Searching for an arbitrary element in a heap takes O(n) time"
+          ],
+          "must_not_entail": [
+            "Searching for an arbitrary element in a heap takes O(log n) time"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which data structure gives O(1) access to the minimum element and O(log n) insertion?",
+          "must_entail": [
+            "A min-heap should be used"
+          ],
+          "keywords": ["heap", "priority queue"]
+        },
+        "mr_pushback": {
+          "question": "A heap stores its elements in sorted order, so you could binary search it. Agreed?",
+          "false_claim": "A heap keeps all elements in sorted order",
+          "must_entail": [
+            "A heap is only partially ordered"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "You need to repeatedly find and remove the task with the earliest deadline from a large, changing set of tasks. Which data structure fits, and what's the time complexity of each operation?",
+            "must_entail": [
+              "A min-heap should be used",
+              "Insert and extract-min take O(log n) time"
+            ]
+          },
+          {
+            "question": "You're asked to merge k sorted lists into one sorted list efficiently. How could a heap help, and what's the benefit over comparing all k list heads with a simple loop every time?",
+            "must_entail": [
+              "A min-heap of the k current list heads lets you repeatedly extract the minimum in O(log k) instead of O(k) per step"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.graph.bfs",
+      "name": "Breadth-First Search",
+      "description": "Level-order graph traversal.",
+      "difficulty": 2,
+      "prereqs": [],
+      "key_facts": [
+        "BFS visits nodes level by level using a queue",
+        "BFS finds shortest paths in unweighted graphs",
+        "BFS runs in O(V + E) time"
+      ],
+      "misconceptions": [
+        "BFS finds shortest paths in weighted graphs",
+        "BFS uses a stack"
+      ],
+      "probes": {
+        "base": {
+          "question": "Explain breadth-first search and what it is useful for.",
+          "must_entail": [
+            "BFS visits nodes level by level using a queue",
+            "BFS finds shortest paths in unweighted graphs"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "Why does BFS give the shortest path in a maze where every step costs the same?",
+          "must_entail": [
+            "BFS explores all nodes at distance k before any node at distance k + 1"
+          ]
+        },
+        "mr_constraint": {
+          "question": "Does BFS still find the shortest path if the edges have different positive weights?",
+          "must_entail": [
+            "BFS does not guarantee shortest paths in weighted graphs"
+          ],
+          "must_not_entail": [
+            "BFS finds shortest paths in weighted graphs"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which traversal would you use to find the minimum number of moves for a knight to reach a square on a chessboard?",
+          "must_entail": [
+            "Breadth-first search should be used"
+          ],
+          "keywords": ["bfs", "breadth"]
+        },
+        "mr_pushback": {
+          "question": "BFS finds shortest paths in any graph, weighted or not. You agree?",
+          "false_claim": "BFS finds shortest paths in weighted graphs",
+          "must_entail": [
+            "BFS only guarantees shortest paths when all edges have equal weight"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "In a social network, how would you find the minimum number of 'hops' (mutual connections) between two people, assuming every connection counts equally?",
+            "must_entail": [
+              "Breadth-first search should be used",
+              "It explores connections level by level so the first time you reach the target is via the shortest path"
+            ]
+          },
+          {
+            "question": "A grid-based game lets a character move to any of 4 adjacent cells in one turn, each move costing the same. How do you compute the minimum number of turns to reach a goal cell?",
+            "must_entail": [
+              "Breadth-first search from the start cell finds the minimum number of turns",
+              "It works because all moves have equal cost"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.graph.dfs",
+      "name": "Depth-First Search",
+      "description": "Deep-first graph traversal with backtracking.",
+      "difficulty": 2,
+      "prereqs": [],
+      "key_facts": [
+        "DFS explores as deep as possible before backtracking",
+        "DFS can be implemented with recursion or an explicit stack",
+        "DFS runs in O(V + E) time",
+        "DFS can detect cycles in a graph"
+      ],
+      "misconceptions": [
+        "DFS finds shortest paths in unweighted graphs"
+      ],
+      "probes": {
+        "base": {
+          "question": "How does depth-first search work?",
+          "must_entail": [
+            "DFS explores as deep as possible before backtracking",
+            "DFS uses a stack or recursion"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "If you explore a maze by always moving forward until you hit a dead end and then stepping back, what algorithm is that and how is it usually implemented?",
+          "must_entail": [
+            "The algorithm is depth-first search",
+            "It is implemented with recursion or a stack"
+          ]
+        },
+        "mr_constraint": {
+          "question": "Does DFS give you the shortest path in an unweighted graph?",
+          "must_entail": [
+            "DFS does not guarantee shortest paths"
+          ],
+          "must_not_entail": [
+            "DFS finds shortest paths in unweighted graphs"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which traversal naturally finds back edges, and therefore cycles, in a directed graph?",
+          "must_entail": [
+            "Depth-first search should be used"
+          ],
+          "keywords": ["dfs", "depth"]
+        },
+        "mr_pushback": {
+          "question": "DFS also finds shortest paths in unweighted graphs, just like BFS. Right?",
+          "false_claim": "DFS finds shortest paths in unweighted graphs",
+          "must_entail": [
+            "DFS does not guarantee shortest paths"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "You want to check whether a graph of task dependencies contains a circular dependency (a cycle). How would depth-first search help you detect this?",
+            "must_entail": [
+              "DFS can detect a cycle by noticing a back edge to a node currently on the recursion stack or path"
+            ]
+          },
+          {
+            "question": "Given a maze represented as a grid, how would you enumerate all possible paths from start to end, not just the shortest one?",
+            "must_entail": [
+              "Depth-first search with backtracking explores each path fully before trying another"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.graph.dijkstra",
+      "name": "Dijkstra's Algorithm",
+      "description": "Single-source shortest paths with non-negative weights.",
+      "difficulty": 3,
+      "prereqs": ["dsa.graph.bfs", "dsa.heap.binary_heap"],
+      "key_facts": [
+        "Dijkstra finds shortest paths from a single source",
+        "Dijkstra repeatedly selects the unvisited node with the smallest known distance",
+        "Dijkstra uses a priority queue",
+        "Dijkstra requires non-negative edge weights"
+      ],
+      "misconceptions": [
+        "Dijkstra's algorithm works correctly with negative edge weights"
+      ],
+      "probes": {
+        "base": {
+          "question": "Explain Dijkstra's algorithm.",
+          "must_entail": [
+            "Dijkstra finds shortest paths from a single source",
+            "Dijkstra repeatedly selects the unvisited node with the smallest known distance",
+            "Dijkstra uses a priority queue"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "How would you find the cheapest route from one city to every other city when every road has a positive toll?",
+          "must_entail": [
+            "Dijkstra's algorithm should be used",
+            "Always expand the city with the lowest known cost next"
+          ],
+          "keywords": ["dijkstra"]
+        },
+        "mr_constraint": {
+          "question": "Now suppose one road has a toll of -3, meaning you get paid to use it. What changes?",
+          "must_entail": [
+            "Dijkstra may give incorrect results with negative edge weights",
+            "Bellman-Ford handles negative edge weights"
+          ],
+          "must_not_entail": [
+            "Dijkstra still works correctly with the negative edge"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which algorithm computes single-source shortest paths with non-negative weights in O((V + E) log V) time?",
+          "must_entail": [
+            "The algorithm is Dijkstra's algorithm"
+          ],
+          "keywords": ["dijkstra"]
+        },
+        "mr_pushback": {
+          "question": "Dijkstra handles negative edge weights fine as long as there are no negative cycles. Right?",
+          "false_claim": "Dijkstra's algorithm works correctly with negative edge weights",
+          "must_entail": [
+            "Dijkstra can fail with negative edge weights even without negative cycles"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "A delivery network has roads with different non-negative travel times. How would you find the fastest route from a central warehouse to every delivery address?",
+            "must_entail": [
+              "Dijkstra's algorithm should be used",
+              "It repeatedly expands the unvisited location with the smallest known travel time using a priority queue"
+            ]
+          },
+          {
+            "question": "Now suppose each edge cost is a probability of success between 0 and 1, and you want to maximize the total probability along a path (multiplying probabilities instead of summing costs). Could you adapt Dijkstra's core idea to solve this, and what would you need to change?",
+            "must_entail": [
+              "Yes, the same greedy priority-queue idea applies, for example by taking logs to turn multiplication into addition",
+              "The algorithm still repeatedly expands the best current option first"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.graph.topological_sort",
+      "name": "Topological Sort",
+      "description": "Linear ordering of a DAG.",
+      "difficulty": 3,
+      "prereqs": ["dsa.graph.dfs"],
+      "key_facts": [
+        "Topological sort orders vertices so every edge goes from earlier to later",
+        "Topological sort is only possible on a directed acyclic graph",
+        "Topological sort can be computed with DFS or Kahn's algorithm in O(V + E) time"
+      ],
+      "misconceptions": [
+        "Topological sort works on graphs with cycles"
+      ],
+      "probes": {
+        "base": {
+          "question": "What is a topological sort and how would you compute one?",
+          "must_entail": [
+            "Topological sort orders vertices so every edge goes from earlier to later",
+            "It can be computed with DFS or Kahn's algorithm"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "Given a list of university courses and their prerequisites, how would you find a valid order to take them?",
+          "must_entail": [
+            "Topological sort should be used",
+            "Every course comes after its prerequisites"
+          ],
+          "keywords": ["topological"]
+        },
+        "mr_constraint": {
+          "question": "What happens if two courses are each a prerequisite of the other?",
+          "must_entail": [
+            "A cycle means no valid topological order exists"
+          ],
+          "must_not_entail": [
+            "Topological sort still produces a valid order"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which algorithm produces a linear order of tasks so that every task comes after all of its dependencies?",
+          "must_entail": [
+            "The algorithm is topological sort"
+          ],
+          "keywords": ["topological"]
+        },
+        "mr_pushback": {
+          "question": "Topological sort still works on a dependency graph with a cycle; you just break the cycle arbitrarily. Right?",
+          "false_claim": "Topological sort works on graphs with cycles",
+          "must_entail": [
+            "Topological sort requires an acyclic graph"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "A build system has files that depend on other files being compiled first. How would you determine a valid compile order, and what would it mean if no valid order exists?",
+            "must_entail": [
+              "Topological sort should be used to find a valid compile order",
+              "If no valid order exists, the dependency graph contains a cycle"
+            ]
+          },
+          {
+            "question": "A spreadsheet has cells whose formulas reference other cells. How would you decide a safe order to recompute all cells so each cell is computed after every cell it depends on?",
+            "must_entail": [
+              "Topological sort over the cell dependency graph gives a safe recomputation order",
+              "A circular reference means no valid order exists"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.dp.memoization",
+      "name": "Dynamic Programming",
+      "description": "Reusing solutions to overlapping subproblems.",
+      "difficulty": 3,
+      "prereqs": ["dsa.complexity.big_o"],
+      "key_facts": [
+        "Dynamic programming applies to problems with overlapping subproblems and optimal substructure",
+        "Memoization stores results of subproblems to avoid recomputation",
+        "Memoized Fibonacci runs in O(n) time while naive recursion takes exponential time"
+      ],
+      "misconceptions": [
+        "Memoization does not change the time complexity of recursive Fibonacci",
+        "Memoization always improves performance"
+      ],
+      "probes": {
+        "base": {
+          "question": "What is dynamic programming and when would you use it?",
+          "must_entail": [
+            "Dynamic programming solves overlapping subproblems once and reuses the results",
+            "Dynamic programming requires optimal substructure"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "Why does a naive recursive Fibonacci function get slow for large n, and how would you fix it?",
+          "must_entail": [
+            "Naive recursion recomputes the same subproblems many times",
+            "Storing computed results makes it run in O(n) time"
+          ]
+        },
+        "mr_constraint": {
+          "question": "Would memoization speed up merge sort, where the subproblems never overlap?",
+          "must_entail": [
+            "Memoization does not help when subproblems do not overlap"
+          ],
+          "must_not_entail": [
+            "Memoization would speed up merge sort"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which technique turns an exponential recursive solution with repeated subproblems into a polynomial one by caching results?",
+          "must_entail": [
+            "The technique is dynamic programming or memoization"
+          ],
+          "keywords": ["dynamic programming", "memoization", "memoisation"]
+        },
+        "mr_pushback": {
+          "question": "Memoization only saves a little time; it doesn't change the complexity class of recursive Fibonacci. Agreed?",
+          "false_claim": "Memoization does not change the time complexity of recursive Fibonacci",
+          "must_entail": [
+            "Memoization reduces Fibonacci from exponential to linear time"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "You want to count the number of distinct ways to climb a staircase of n steps, taking either 1 or 2 steps at a time. Naive recursion recomputes a lot of work. How would memoization help here, and what's the resulting time complexity?",
+            "must_entail": [
+              "Store the number of ways to reach each step so it isn't recomputed",
+              "This reduces the time complexity to O(n)"
+            ]
+          },
+          {
+            "question": "In the classic knapsack problem (choosing items with weights and values to maximize value under a weight limit), why can dynamic programming solve it efficiently even though trying every subset is exponential?",
+            "must_entail": [
+              "The subproblems overlap and can be cached and reused",
+              "This makes the dynamic programming solution polynomial instead of exponential"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dsa.tree.bst",
+      "name": "Binary Search Trees",
+      "description": "Ordered binary trees for search.",
+      "difficulty": 2,
+      "prereqs": ["dsa.search.binary_search"],
+      "key_facts": [
+        "In a BST, keys in the left subtree are smaller and keys in the right subtree are larger",
+        "BST operations take time proportional to the height of the tree",
+        "An unbalanced BST can degrade to O(n) operations",
+        "Inorder traversal of a BST visits keys in sorted order"
+      ],
+      "misconceptions": [
+        "BST operations are always O(log n)"
+      ],
+      "probes": {
+        "base": {
+          "question": "What is a binary search tree and how fast are its operations?",
+          "must_entail": [
+            "Left subtree keys are smaller and right subtree keys are larger",
+            "Operations take O(log n) time when the tree is balanced"
+          ]
+        },
+        "mr_paraphrase": {
+          "question": "How does a binary search tree let you find a key quickly?",
+          "must_entail": [
+            "At each node you go left or right by comparing keys",
+            "Search time is proportional to the height of the tree"
+          ]
+        },
+        "mr_constraint": {
+          "question": "What happens to a BST if you insert the keys 1, 2, 3, ..., 1000 in increasing order?",
+          "must_entail": [
+            "The tree degenerates into a linked list",
+            "Operations degrade to O(n) time"
+          ],
+          "must_not_entail": [
+            "Operations are still O(log n)"
+          ]
+        },
+        "mr_inversion": {
+          "question": "Which traversal of a binary search tree outputs the keys in sorted order?",
+          "must_entail": [
+            "Inorder traversal outputs the keys in sorted order"
+          ],
+          "keywords": ["inorder", "in-order", "in order"]
+        },
+        "mr_pushback": {
+          "question": "A BST guarantees O(log n) search no matter what order you insert keys in. Correct?",
+          "false_claim": "BST operations are always O(log n)",
+          "must_entail": [
+            "An unbalanced BST can have O(n) search time"
+          ]
+        },
+        "mr_transfer": [
+          {
+            "question": "You need to repeatedly ask 'how many stored values are less than X' efficiently as values are inserted. If you used a balanced binary search tree for this, roughly what time complexity could you expect per operation, and why?",
+            "must_entail": [
+              "Roughly O(log n) time because the tree's height is logarithmic when balanced",
+              "Operations take time proportional to the height of the tree"
+            ]
+          },
+          {
+            "question": "You're choosing between a balanced BST and a plain sorted array for a structure that needs frequent insertions and frequent searches. How do the two compare for insert cost?",
+            "must_entail": [
+              "A balanced BST gives O(log n) insert, much better than a sorted array's O(n) insert from shifting elements"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

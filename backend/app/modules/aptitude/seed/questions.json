@@ -1,0 +1,198 @@
+{
+  "questions": [
+    {
+      "id": "apt.quant.1",
+      "category": "quantitative",
+      "difficulty": "easy",
+      "question": "A train 120 m long is running at 60 km/h. How long does it take to cross a platform 180 m long?",
+      "options": ["15 seconds", "18 seconds", "20 seconds", "24 seconds"],
+      "correct_index": 1,
+      "explanation": "Speed = 60 km/h = 16.67 m/s. Distance = 120 + 180 = 300 m. Time = 300 / 16.67 = 18 s."
+    },
+    {
+      "id": "apt.quant.2",
+      "category": "quantitative",
+      "difficulty": "easy",
+      "question": "What is the simple interest on ₹8000 at 5% per annum for 3 years?",
+      "options": ["₹1000", "₹1200", "₹1300", "₹1500"],
+      "correct_index": 1,
+      "explanation": "SI = P×R×T/100 = 8000×5×3/100 = 1200."
+    },
+    {
+      "id": "apt.quant.3",
+      "category": "quantitative",
+      "difficulty": "easy",
+      "question": "What is the average of the first 10 natural numbers?",
+      "options": ["5", "5.5", "6", "10"],
+      "correct_index": 1,
+      "explanation": "Sum = 1+2+...+10 = 55. Average = 55/10 = 5.5."
+    },
+    {
+      "id": "apt.quant.4",
+      "category": "quantitative",
+      "difficulty": "medium",
+      "question": "If a:b = 2:3 and b:c = 4:5, what is a:b:c?",
+      "options": ["8:12:15", "2:4:5", "6:9:15", "8:9:15"],
+      "correct_index": 0,
+      "explanation": "Scale a:b to 8:12 and b:c to 12:15 so b matches, giving a:b:c = 8:12:15."
+    },
+    {
+      "id": "apt.quant.5",
+      "category": "quantitative",
+      "difficulty": "medium",
+      "question": "A can finish a piece of work in 10 days and B can finish it in 15 days. Working together, how many days will they take?",
+      "options": ["5 days", "6 days", "7 days", "8 days"],
+      "correct_index": 1,
+      "explanation": "Combined rate = 1/10 + 1/15 = 1/6, so together they take 6 days."
+    },
+    {
+      "id": "apt.quant.6",
+      "category": "quantitative",
+      "difficulty": "easy",
+      "question": "What is 15% of 200?",
+      "options": ["20", "25", "30", "35"],
+      "correct_index": 2,
+      "explanation": "15% of 200 = 0.15 × 200 = 30."
+    },
+    {
+      "id": "apt.quant.7",
+      "category": "quantitative",
+      "difficulty": "medium",
+      "question": "The sum of three consecutive integers is 72. What is the largest of the three?",
+      "options": ["23", "24", "25", "26"],
+      "correct_index": 2,
+      "explanation": "Let the integers be n-1, n, n+1. Their sum is 3n = 72, so n = 24 and the largest is 25."
+    },
+    {
+      "id": "apt.logical.1",
+      "category": "logical",
+      "difficulty": "easy",
+      "question": "Find the next number in the series: 2, 6, 12, 20, 30, ?",
+      "options": ["36", "40", "42", "44"],
+      "correct_index": 2,
+      "explanation": "Differences are 4, 6, 8, 10, 12, so the next term is 30 + 12 = 42."
+    },
+    {
+      "id": "apt.logical.2",
+      "category": "logical",
+      "difficulty": "medium",
+      "question": "In a certain code, CODE is written as DPEF (each letter shifted forward by one). How is FISH written in the same code?",
+      "options": ["GJTI", "GJTH", "FJTI", "GITI"],
+      "correct_index": 0,
+      "explanation": "Shifting each letter forward by one: F→G, I→J, S→T, H→I gives GJTI."
+    },
+    {
+      "id": "apt.logical.3",
+      "category": "logical",
+      "difficulty": "medium",
+      "question": "Statements: All pens are tools. All tools are useful. Conclusions: I. All pens are useful. II. All useful things are pens. Which conclusion(s) logically follow?",
+      "options": ["Only I follows", "Only II follows", "Both I and II follow", "Neither follows"],
+      "correct_index": 0,
+      "explanation": "Pens are a subset of tools, and tools are a subset of useful things, so all pens are useful (I). II reverses the logic and does not follow."
+    },
+    {
+      "id": "apt.logical.4",
+      "category": "logical",
+      "difficulty": "hard",
+      "question": "Pointing to a man, a woman said, \"His mother is the only daughter of my mother.\" How is the woman related to the man?",
+      "options": ["Mother", "Sister", "Aunt", "Grandmother"],
+      "correct_index": 0,
+      "explanation": "\"The only daughter of my mother\" is the woman herself, so the woman is the man's mother."
+    },
+    {
+      "id": "apt.logical.5",
+      "category": "logical",
+      "difficulty": "easy",
+      "question": "Choose the odd one out: Cat, Snake, Lion, Tiger",
+      "options": ["Cat", "Snake", "Lion", "Tiger"],
+      "correct_index": 1,
+      "explanation": "Cat, Lion, and Tiger are mammals; Snake is a reptile."
+    },
+    {
+      "id": "apt.logical.6",
+      "category": "logical",
+      "difficulty": "medium",
+      "question": "In a certain code, SUN is written as TVO (each letter shifted forward by one). How is MOON written in the same code?",
+      "options": ["NPPO", "MPPO", "NPPN", "NOOM"],
+      "correct_index": 0,
+      "explanation": "Shifting each letter forward by one: M→N, O→P, O→P, N→O gives NPPO."
+    },
+    {
+      "id": "apt.logical.7",
+      "category": "logical",
+      "difficulty": "easy",
+      "question": "A is taller than B. C is shorter than A but taller than B. Who is the tallest?",
+      "options": ["A", "B", "C", "Cannot be determined"],
+      "correct_index": 0,
+      "explanation": "The order from tallest to shortest is A, C, B, so A is the tallest."
+    },
+    {
+      "id": "apt.verbal.1",
+      "category": "verbal",
+      "difficulty": "easy",
+      "question": "Choose the word closest in meaning to \"Benevolent\":",
+      "options": ["Kind", "Cruel", "Lazy", "Timid"],
+      "correct_index": 0,
+      "explanation": "\"Benevolent\" means kind and generous."
+    },
+    {
+      "id": "apt.verbal.2",
+      "category": "verbal",
+      "difficulty": "easy",
+      "question": "Choose the word opposite in meaning to \"Abundant\":",
+      "options": ["Scarce", "Plentiful", "Ample", "Rich"],
+      "correct_index": 0,
+      "explanation": "\"Abundant\" means plentiful; its opposite is \"Scarce\"."
+    },
+    {
+      "id": "apt.verbal.3",
+      "category": "verbal",
+      "difficulty": "easy",
+      "question": "Fill in the blank: She is _____ honest person.",
+      "options": ["a", "an", "the", "no article needed"],
+      "correct_index": 1,
+      "explanation": "\"Honest\" begins with a vowel sound, so the correct article is \"an\"."
+    },
+    {
+      "id": "apt.verbal.4",
+      "category": "verbal",
+      "difficulty": "easy",
+      "question": "Choose the correctly spelled word:",
+      "options": ["Recieve", "Receive", "Receeve", "Receve"],
+      "correct_index": 1,
+      "explanation": "The correct spelling follows \"i before e except after c\": Receive."
+    },
+    {
+      "id": "apt.verbal.5",
+      "category": "verbal",
+      "difficulty": "medium",
+      "question": "Which idiom means \"to reveal a secret unintentionally\"?",
+      "options": ["Spill the beans", "Hit the sack", "Break the ice", "Burn the midnight oil"],
+      "correct_index": 0,
+      "explanation": "\"Spill the beans\" means to reveal secret information."
+    },
+    {
+      "id": "apt.verbal.6",
+      "category": "verbal",
+      "difficulty": "medium",
+      "question": "Choose the one-word substitution for \"a person who speaks many languages\":",
+      "options": ["Linguist", "Polyglot", "Translator", "Orator"],
+      "correct_index": 1,
+      "explanation": "A \"polyglot\" is a person who knows and can use several languages."
+    },
+    {
+      "id": "apt.verbal.7",
+      "category": "verbal",
+      "difficulty": "medium",
+      "question": "Choose the correctly punctuated sentence:",
+      "options": [
+        "Its a beautiful day isnt it",
+        "It's a beautiful day, isn't it?",
+        "Its a beautiful day, isnt it?",
+        "It's a beautiful day isn't it?"
+      ],
+      "correct_index": 1,
+      "explanation": "Both contractions need apostrophes (It's, isn't), and the sentence needs a comma before the tag question and a question mark at the end."
+    }
+  ]
+}

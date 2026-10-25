@@ -1,0 +1,84 @@
+{
+  "companies": [
+    {
+      "id": "google", "name": "Google", "tier": "top",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.graphs": 2.5, "dsa_sheet.dp": 2.5, "dsa_sheet.binary_search": 2.0, "dsa_sheet.binary_trees": 2.0, "dsa_sheet.recursion": 1.8},
+        "subtopic": {"scaling": 2.5, "databases": 2.0, "caching": 2.0, "consistency_patterns": 2.0}
+      }
+    },
+    {
+      "id": "amazon", "name": "Amazon", "tier": "top",
+      "rounds": ["DSA", "System Design", "Behavioral (Leadership Principles)"],
+      "emphasis": {
+        "topic": {"dsa_sheet.arrays": 2.0, "dsa_sheet.graphs": 2.0, "dsa_sheet.greedy": 1.8, "dsa_sheet.heaps": 1.8, "dsa_sheet.binary_trees": 1.8},
+        "subtopic": {"scaling": 2.0, "load_balancing": 2.0, "reliability": 2.5, "availability_patterns": 2.2, "asynchronism": 1.8}
+      }
+    },
+    {
+      "id": "microsoft", "name": "Microsoft", "tier": "top",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.linked_list": 2.0, "dsa_sheet.binary_trees": 2.0, "dsa_sheet.strings": 1.8, "dsa_sheet.bst": 1.8, "dsa_sheet.dp": 1.5},
+        "subtopic": {"application_layer": 2.0, "cloud_patterns": 2.2, "databases": 1.8}
+      }
+    },
+    {
+      "id": "meta", "name": "Meta", "tier": "top",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.arrays": 2.2, "dsa_sheet.graphs": 2.2, "dsa_sheet.strings": 1.8, "dsa_sheet.two_pointer": 1.8, "dsa_sheet.heaps": 1.6},
+        "subtopic": {"scaling": 2.8, "caching": 2.2, "communication": 2.0, "consistency_patterns": 1.8}
+      }
+    },
+    {
+      "id": "apple", "name": "Apple", "tier": "top",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.binary_trees": 2.0, "dsa_sheet.linked_list": 1.8, "dsa_sheet.recursion": 1.8, "dsa_sheet.arrays": 1.6},
+        "subtopic": {"reliability": 2.2, "application_layer": 1.8, "performance_antipatterns": 2.0}
+      }
+    },
+    {
+      "id": "netflix", "name": "Netflix", "tier": "top",
+      "rounds": ["System Design", "DSA", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.graphs": 1.8, "dsa_sheet.dp": 1.6},
+        "subtopic": {"cdn": 2.8, "scaling": 2.5, "availability_patterns": 2.5, "asynchronism": 2.0, "monitoring": 2.0}
+      }
+    },
+    {
+      "id": "uber", "name": "Uber", "tier": "top",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.graphs": 2.5, "dsa_sheet.heaps": 2.0, "dsa_sheet.greedy": 1.8},
+        "subtopic": {"scaling": 2.5, "load_balancing": 2.2, "consistency_patterns": 2.0, "reliability": 2.0}
+      }
+    },
+    {
+      "id": "flipkart", "name": "Flipkart", "tier": "standard",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.arrays": 2.0, "dsa_sheet.strings": 1.8, "dsa_sheet.dp": 1.8, "dsa_sheet.linked_list": 1.6},
+        "subtopic": {"application_layer": 2.2, "databases": 2.0, "caching": 1.8, "idempotency": 1.8}
+      }
+    },
+    {
+      "id": "adobe", "name": "Adobe", "tier": "standard",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.binary_trees": 1.8, "dsa_sheet.strings": 1.8, "dsa_sheet.arrays": 1.6},
+        "subtopic": {"application_layer": 1.8, "databases": 1.6}
+      }
+    },
+    {
+      "id": "salesforce", "name": "Salesforce", "tier": "standard",
+      "rounds": ["DSA", "System Design", "Behavioral"],
+      "emphasis": {
+        "topic": {"dsa_sheet.basics": 1.8, "dsa_sheet.arrays": 1.6, "dsa_sheet.stack_queue": 1.6},
+        "subtopic": {"application_layer": 2.2, "cloud_patterns": 2.0, "idempotency": 1.8}
+      }
+    }
+  ]
+}

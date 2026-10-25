@@ -1,0 +1,4461 @@
+{
+  "subtopics": [
+    {
+      "id": "basics",
+      "name": "Fundamentals & Approach"
+    },
+    {
+      "id": "scaling",
+      "name": "Scaling"
+    },
+    {
+      "id": "consistency_patterns",
+      "name": "Consistency Patterns"
+    },
+    {
+      "id": "availability_patterns",
+      "name": "Availability Patterns"
+    },
+    {
+      "id": "background_jobs",
+      "name": "Background Jobs"
+    },
+    {
+      "id": "dns",
+      "name": "Domain Name System"
+    },
+    {
+      "id": "cdn",
+      "name": "Content Delivery Networks"
+    },
+    {
+      "id": "load_balancing",
+      "name": "Load Balancing"
+    },
+    {
+      "id": "application_layer",
+      "name": "Application Layer & Microservices"
+    },
+    {
+      "id": "databases",
+      "name": "Databases"
+    },
+    {
+      "id": "caching",
+      "name": "Caching"
+    },
+    {
+      "id": "asynchronism",
+      "name": "Asynchronism & Queues"
+    },
+    {
+      "id": "idempotency",
+      "name": "Idempotent Operations"
+    },
+    {
+      "id": "communication",
+      "name": "Communication Protocols"
+    },
+    {
+      "id": "performance_antipatterns",
+      "name": "Performance Antipatterns"
+    },
+    {
+      "id": "cloud_patterns",
+      "name": "Cloud Design Patterns"
+    },
+    {
+      "id": "reliability",
+      "name": "Reliability & Fault Tolerance"
+    },
+    {
+      "id": "monitoring",
+      "name": "Monitoring & Observability"
+    }
+  ],
+  "total_prompts": 180,
+  "simulatable_count": 20,
+  "prompts": [
+    {
+      "id": "sd.basics.p01",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a URL Shortener",
+      "scenario": "Design a service that takes a long URL and returns a short code that redirects to it. Reads (redirects) vastly outnumber writes (new shortlinks). Start simple, then make it survive real load.",
+      "difficulty": "Easy",
+      "tags": [
+        "read-heavy",
+        "caching",
+        "hashing"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 20000,
+        "read_ratio": 0.95,
+        "p99_slo_ms": 150,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.15
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Shortener API",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Redirect Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.85
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "URL Mapping DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.scaling.p01",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design a News Feed Service at Scale",
+      "scenario": "Design the backend that assembles a user's home feed from the people they follow. At small scale a simple query works; at scale, fan-out and caching dominate the design.",
+      "difficulty": "Hard",
+      "tags": [
+        "fan-out",
+        "caching",
+        "queueing"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 40000,
+        "read_ratio": 0.9,
+        "p99_slo_ms": 400,
+        "availability_slo": 0.995,
+        "growth_per_month": 0.2
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Feed API",
+            "params": {
+              "replicas": 3
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Feed Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.75
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Posts DB",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Fan-out Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Fan-out Worker",
+            "params": {
+              "replicas": 2
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 0.9,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 0.1,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.consistency_patterns.p01",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Leaderboard Service with Eventual Consistency",
+      "scenario": "Design a game leaderboard that accepts score updates constantly but only needs to show a consistent ranking within a few seconds of staleness, not instantly.",
+      "difficulty": "Medium",
+      "tags": [
+        "eventual-consistency",
+        "caching",
+        "write-heavy"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 15000,
+        "read_ratio": 0.6,
+        "p99_slo_ms": 250,
+        "availability_slo": 0.995,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Leaderboard API",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Ranked Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.7
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Score Update Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Rank Recompute Worker",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Scores DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 0.6,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 0.4,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.availability_patterns.p01",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Multi-Region Failover API",
+      "scenario": "Design an API that must keep serving reads even if an entire region's compute fails. Model the redundancy explicitly rather than assuming it away.",
+      "difficulty": "Medium",
+      "tags": [
+        "redundancy",
+        "failover",
+        "spof"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 10000,
+        "read_ratio": 0.85,
+        "p99_slo_ms": 200,
+        "availability_slo": 0.9995,
+        "growth_per_month": 0.08
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Global Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "API (single region)",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Primary DB",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "replica",
+            "type": "read_replica",
+            "label": "Standby Read Replica",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 0.7,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "replica",
+            "fraction": 0.3,
+            "kind": "sync"
+          },
+          {
+            "src": "db",
+            "dst": "replica",
+            "fraction": 1.0,
+            "kind": "async"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.background_jobs.p01",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Scheduled Report Generation Pipeline",
+      "scenario": "Design a system where users request a large report; generating it is too slow to do inline, so it has to run in the background while the user is told 'we'll notify you'.",
+      "difficulty": "Easy",
+      "tags": [
+        "async",
+        "queue",
+        "worker-pool"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 2000,
+        "read_ratio": 0.5,
+        "p99_slo_ms": 500,
+        "availability_slo": 0.99,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Report API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Report Job Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Report Worker",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Reports DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.cdn.p01",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design a Static Asset Delivery Pipeline",
+      "scenario": "Design how images and static files are served to millions of users worldwide, most of whom request the same popular files repeatedly.",
+      "difficulty": "Easy",
+      "tags": [
+        "cdn",
+        "edge-caching",
+        "read-heavy"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 60000,
+        "read_ratio": 0.99,
+        "p99_slo_ms": 100,
+        "availability_slo": 0.9995,
+        "growth_per_month": 0.12
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "edge",
+            "type": "cache",
+            "label": "CDN Edge Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.92
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Origin API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Asset Metadata DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "edge",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "edge",
+            "dst": "api",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.load_balancing.p01",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design a Horizontally Scaled API Gateway",
+      "scenario": "Design the entry point for a product with rapidly growing traffic. The gateway itself must never become the bottleneck, and the services behind it must scale out, not just up.",
+      "difficulty": "Easy",
+      "tags": [
+        "load-balancing",
+        "horizontal-scaling"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 30000,
+        "read_ratio": 0.75,
+        "p99_slo_ms": 200,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.25
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "API Gateway LB",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "API Service",
+            "params": {
+              "replicas": 3
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Primary DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.application_layer.p01",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design a Microservices E-Commerce Checkout",
+      "scenario": "Design the checkout flow for an e-commerce site: validate the cart, reserve inventory, and hand off payment processing asynchronously so the user isn't stuck waiting on a card network.",
+      "difficulty": "Hard",
+      "tags": [
+        "microservices",
+        "async",
+        "e-commerce"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 8000,
+        "read_ratio": 0.5,
+        "p99_slo_ms": 400,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.15
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Checkout Service",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Inventory Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.6
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Orders DB",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Payment Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Payment Worker",
+            "params": {
+              "replicas": 2
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 0.5,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 0.5,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.databases.p01",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design a Product Catalog with Read Replicas",
+      "scenario": "Design a product catalog that is read constantly (browsing) and written rarely (restocking, price changes). Use read replicas to take load off the primary.",
+      "difficulty": "Medium",
+      "tags": [
+        "read-replica",
+        "read-heavy",
+        "sql"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 25000,
+        "read_ratio": 0.97,
+        "p99_slo_ms": 200,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Catalog API",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Catalog Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.8
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Primary DB",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "replica",
+            "type": "read_replica",
+            "label": "Read Replica",
+            "params": {
+              "replicas": 2
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 0.8,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "replica",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "db",
+            "dst": "replica",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 0.2,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.databases.p02",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design a Key-Value Store Service",
+      "scenario": "Design a simple internal key-value service other teams will depend on: get/put by key, nothing fancier, but it needs to survive being hammered by many internal clients at once.",
+      "difficulty": "Easy",
+      "tags": [
+        "key-value",
+        "sql",
+        "internal-service"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 12000,
+        "read_ratio": 0.7,
+        "p99_slo_ms": 100,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Internal Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "KV API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Storage Engine",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.caching.p01",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design a Distributed Session Cache",
+      "scenario": "Design where user session data lives so that any API instance behind the load balancer can serve any user's requests without sticky sessions.",
+      "difficulty": "Easy",
+      "tags": [
+        "caching",
+        "sessions",
+        "statelessness"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 18000,
+        "read_ratio": 0.85,
+        "p99_slo_ms": 150,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "API Service",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Session Store",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.9
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Durable Session Backup",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.caching.p02",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design a Rate Limiter Backed by an In-Memory Store",
+      "scenario": "Design a rate limiter that every API request passes through. It must make an allow/deny decision in under a few milliseconds, at the full traffic volume of the product.",
+      "difficulty": "Medium",
+      "tags": [
+        "rate-limiting",
+        "caching",
+        "high-throughput"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 50000,
+        "read_ratio": 0.99,
+        "p99_slo_ms": 50,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.15
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "API + Limiter",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Counter Store",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.98
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Policy DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.asynchronism.p01",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design a Video Transcoding Pipeline",
+      "scenario": "Design the backend for a video upload feature. Uploads must return quickly; the actual transcoding into multiple resolutions is slow and must happen off the request path.",
+      "difficulty": "Medium",
+      "tags": [
+        "async",
+        "queue",
+        "media"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 1500,
+        "read_ratio": 0.3,
+        "p99_slo_ms": 600,
+        "availability_slo": 0.99,
+        "growth_per_month": 0.2
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Upload API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Transcode Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Transcode Worker",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Video Metadata DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.idempotency.p01",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design an Idempotent Payment Processing API",
+      "scenario": "Design a payment API where client retries (due to timeouts or network blips) must never charge a customer twice for the same logical request.",
+      "difficulty": "Medium",
+      "tags": [
+        "idempotency",
+        "payments",
+        "retries"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 5000,
+        "read_ratio": 0.2,
+        "p99_slo_ms": 300,
+        "availability_slo": 0.9995,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Payment API",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Idempotency Key Store",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.5
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Ledger DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.communication.p01",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design a Real-Time Chat Backend",
+      "scenario": "Design the server side of a chat application: delivering messages between users with low latency, and persisting history so it survives a client reconnecting.",
+      "difficulty": "Hard",
+      "tags": [
+        "real-time",
+        "messaging",
+        "queue"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 20000,
+        "read_ratio": 0.5,
+        "p99_slo_ms": 200,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.15
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Chat Gateway",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Presence Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.7
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Message Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Delivery Worker",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Message History DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "cache",
+            "fraction": 0.3,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "db",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 0.7,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.performance_antipatterns.p01",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose and Fix an Overloaded Checkout Service",
+      "scenario": "This checkout service was built for a demo and is now in production. It is deliberately under-sized: find out why it falls over under real load and redesign it. There is no 'correct' starting diagram here, only this broken one to fix.",
+      "difficulty": "Medium",
+      "tags": [
+        "antipattern",
+        "capacity-planning",
+        "redesign"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 15000,
+        "read_ratio": 0.6,
+        "p99_slo_ms": 250,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Checkout API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Orders DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.cloud_patterns.p01",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design a CQRS-based Order Management System",
+      "scenario": "Design an order management system where writes (placing orders) and reads (order history, dashboards) have very different load shapes, and you want to scale and optimise them independently.",
+      "difficulty": "Hard",
+      "tags": [
+        "cqrs",
+        "read-write-split"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 10000,
+        "read_ratio": 0.7,
+        "p99_slo_ms": 300,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.12
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "write_api",
+            "type": "api_service",
+            "label": "Command API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Order Events Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Projection Worker",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Write DB (orders)",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "read_api",
+            "type": "api_service",
+            "label": "Query API",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "cache",
+            "type": "cache",
+            "label": "Read Model Cache",
+            "params": {
+              "replicas": 1,
+              "hit_ratio": 0.75
+            }
+          },
+          {
+            "id": "replica",
+            "type": "read_replica",
+            "label": "Read Model Store",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "write_api",
+            "fraction": 0.3,
+            "kind": "sync"
+          },
+          {
+            "src": "write_api",
+            "dst": "queue",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "read_api",
+            "fraction": 0.7,
+            "kind": "sync"
+          },
+          {
+            "src": "read_api",
+            "dst": "cache",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "cache",
+            "dst": "replica",
+            "fraction": "miss",
+            "kind": "sync"
+          },
+          {
+            "src": "db",
+            "dst": "replica",
+            "fraction": 1.0,
+            "kind": "async"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.reliability.p01",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Circuit-Breaker Protected Payment Gateway",
+      "scenario": "Design an API that calls a slow, occasionally-overloaded downstream payment partner, without letting that partner's slowness cascade into your own service falling over.",
+      "difficulty": "Medium",
+      "tags": [
+        "circuit-breaker",
+        "cascading-failure"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 6000,
+        "read_ratio": 0.3,
+        "p99_slo_ms": 400,
+        "availability_slo": 0.999,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Payment Gateway",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "partner",
+            "type": "api_service",
+            "label": "Downstream Partner (slow)",
+            "params": {
+              "replicas": 1,
+              "mu": 150,
+              "base_latency_ms": 40
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Transactions DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "partner",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.reliability.p02",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Bulkhead-Isolated Notification Service",
+      "scenario": "Design a notification service sending email, SMS and push. One noisy, slow channel should never be able to starve the others of worker capacity.",
+      "difficulty": "Medium",
+      "tags": [
+        "bulkhead",
+        "isolation",
+        "worker-pool"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 9000,
+        "read_ratio": 0.1,
+        "p99_slo_ms": 500,
+        "availability_slo": 0.995,
+        "growth_per_month": 0.1
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Clients",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Load Balancer",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Notification API",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Notification Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Notification Worker Pool",
+            "params": {
+              "replicas": 3
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Delivery Log DB",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.monitoring.p01",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design a Metrics Ingestion Pipeline",
+      "scenario": "Design the pipeline that ingests a metric data point from every service, every few seconds, across an entire company's infrastructure, and makes it queryable on a dashboard within a minute.",
+      "difficulty": "Medium",
+      "tags": [
+        "observability",
+        "high-throughput",
+        "time-series"
+      ],
+      "simulatable": true,
+      "requirements": {
+        "peak_rps": 35000,
+        "read_ratio": 0.2,
+        "p99_slo_ms": 300,
+        "availability_slo": 0.995,
+        "growth_per_month": 0.15
+      },
+      "starter_graph": {
+        "nodes": [
+          {
+            "id": "client",
+            "type": "client",
+            "label": "Metric Producers",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "lb",
+            "type": "load_balancer",
+            "label": "Ingestion LB",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "api",
+            "type": "api_service",
+            "label": "Ingestion API",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "queue",
+            "type": "queue",
+            "label": "Metrics Queue",
+            "params": {
+              "replicas": 1
+            }
+          },
+          {
+            "id": "worker",
+            "type": "worker",
+            "label": "Aggregation Worker",
+            "params": {
+              "replicas": 2
+            }
+          },
+          {
+            "id": "db",
+            "type": "sql_primary",
+            "label": "Time-Series Store",
+            "params": {
+              "replicas": 1
+            }
+          }
+        ],
+        "edges": [
+          {
+            "src": "client",
+            "dst": "lb",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "lb",
+            "dst": "api",
+            "fraction": 1.0,
+            "kind": "sync"
+          },
+          {
+            "src": "api",
+            "dst": "queue",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "queue",
+            "dst": "worker",
+            "fraction": 1.0,
+            "kind": "async"
+          },
+          {
+            "src": "worker",
+            "dst": "db",
+            "fraction": 1.0,
+            "kind": "sync"
+          }
+        ]
+      }
+    },
+    {
+      "id": "sd.basics.p02",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a Pastebin",
+      "scenario": "A service for sharing text snippets with a generated link, optional expiry.",
+      "difficulty": "Easy",
+      "tags": [
+        "read-heavy",
+        "storage"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p03",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a Tiny URL Analytics Dashboard",
+      "scenario": "Extend a URL shortener with per-link click counts and referrer tracking.",
+      "difficulty": "Easy",
+      "tags": [
+        "analytics",
+        "write-path"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p04",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a Parking Lot System",
+      "scenario": "Model floors, spot types, entry/exit, and pricing for a multi-level garage.",
+      "difficulty": "Easy",
+      "tags": [
+        "oop-design",
+        "state-machine"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p05",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a Vending Machine",
+      "scenario": "Model inventory, payment, and dispensing as a state machine.",
+      "difficulty": "Easy",
+      "tags": [
+        "oop-design",
+        "state-machine"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p06",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a Tic-Tac-Toe Game Server",
+      "scenario": "Two players, turn validation, win detection, as a backend service.",
+      "difficulty": "Easy",
+      "tags": [
+        "state-machine",
+        "oop-design"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p07",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design an Elevator System",
+      "scenario": "Multiple elevators, multiple floors, request scheduling and dispatch.",
+      "difficulty": "Medium",
+      "tags": [
+        "scheduling",
+        "oop-design"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p08",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Approach: Estimate Back-of-the-Envelope Capacity",
+      "scenario": "Given a product description, estimate QPS, storage, and bandwidth from first principles.",
+      "difficulty": "Easy",
+      "tags": [
+        "estimation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p09",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Approach: Choosing Between SQL and NoSQL",
+      "scenario": "Given access patterns, justify a database family choice with trade-offs.",
+      "difficulty": "Easy",
+      "tags": [
+        "databases",
+        "trade-offs"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.basics.p10",
+      "subtopic_id": "basics",
+      "subtopic_name": "Fundamentals & Approach",
+      "title": "Design a Library Management System",
+      "scenario": "Books, members, checkouts, holds, and late fees.",
+      "difficulty": "Easy",
+      "tags": [
+        "oop-design",
+        "crud"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p02",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design Instagram",
+      "scenario": "Photo sharing, follows, and a home feed at hundreds of millions of users.",
+      "difficulty": "Hard",
+      "tags": [
+        "fan-out",
+        "media-storage"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p03",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design Twitter",
+      "scenario": "Short posts, follows, retweets, and a feed with celebrity fan-out problems.",
+      "difficulty": "Hard",
+      "tags": [
+        "fan-out",
+        "celebrity-problem"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p04",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design YouTube",
+      "scenario": "Video upload, transcoding, and globally distributed playback.",
+      "difficulty": "Hard",
+      "tags": [
+        "media",
+        "cdn"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p05",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design a Ride-Sharing Dispatch System",
+      "scenario": "Match riders to nearby drivers in real time across a whole city.",
+      "difficulty": "Hard",
+      "tags": [
+        "geospatial",
+        "real-time"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p06",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design an Ad Click Aggregation System",
+      "scenario": "Ingest and aggregate billions of ad click events per day.",
+      "difficulty": "Hard",
+      "tags": [
+        "big-data",
+        "aggregation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p07",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design a Search Autocomplete Service",
+      "scenario": "Suggest completions as a user types, at very low latency and huge QPS.",
+      "difficulty": "Medium",
+      "tags": [
+        "trie",
+        "caching"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p08",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design a Web Crawler",
+      "scenario": "Crawl the web at scale while respecting robots.txt and avoiding duplicate work.",
+      "difficulty": "Hard",
+      "tags": [
+        "distributed-systems",
+        "dedup"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p09",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Design a Distributed File Storage System (Dropbox-like)",
+      "scenario": "Sync files across devices with conflict resolution and deduplication.",
+      "difficulty": "Hard",
+      "tags": [
+        "sync",
+        "storage"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.scaling.p10",
+      "subtopic_id": "scaling",
+      "subtopic_name": "Scaling",
+      "title": "Scale a Single-Server App to Multi-Region",
+      "scenario": "Walk through the stages of scaling a monolith to a global, multi-region deployment.",
+      "difficulty": "Medium",
+      "tags": [
+        "growth-path"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p02",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Shopping Cart with Strong Consistency on Checkout",
+      "scenario": "Cart updates can be loose, but checkout inventory decrement must be exact.",
+      "difficulty": "Medium",
+      "tags": [
+        "strong-consistency",
+        "inventory"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p03",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Collaborative Document Editor",
+      "scenario": "Multiple users edit the same document; reconcile concurrent edits.",
+      "difficulty": "Hard",
+      "tags": [
+        "crdt",
+        "operational-transform"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p04",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Distributed Counter Service",
+      "scenario": "A like/view counter that must stay approximately correct under massive concurrent writes.",
+      "difficulty": "Medium",
+      "tags": [
+        "counters",
+        "approximate-consistency"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p05",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Explain Read-Your-Writes Consistency for a Profile Edit",
+      "scenario": "A user edits their profile and immediately reloads the page; what guarantees are needed?",
+      "difficulty": "Easy",
+      "tags": [
+        "session-consistency"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p06",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Distributed Lock Service",
+      "scenario": "Coordinate exclusive access to a resource across multiple nodes.",
+      "difficulty": "Hard",
+      "tags": [
+        "distributed-locks",
+        "coordination"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p07",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Bank Account Ledger",
+      "scenario": "Transfers between accounts must never lose or duplicate money under concurrent requests.",
+      "difficulty": "Hard",
+      "tags": [
+        "acid",
+        "financial-consistency"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p08",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design an Inventory Service for Flash Sales",
+      "scenario": "Thousands of concurrent buyers for limited stock; avoid overselling.",
+      "difficulty": "Hard",
+      "tags": [
+        "oversell-prevention",
+        "locking"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p09",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Compare Strong vs Eventual Consistency for a Comments Feature",
+      "scenario": "When is it acceptable for a new comment to be briefly invisible to some readers?",
+      "difficulty": "Easy",
+      "tags": [
+        "trade-offs"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.consistency_patterns.p10",
+      "subtopic_id": "consistency_patterns",
+      "subtopic_name": "Consistency Patterns",
+      "title": "Design a Multi-Region Database Replication Strategy",
+      "scenario": "Choose and justify a consistency model for a globally replicated dataset.",
+      "difficulty": "Hard",
+      "tags": [
+        "replication",
+        "multi-region"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p02",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Health-Check and Auto-Healing System",
+      "scenario": "Detect unhealthy instances and replace them automatically.",
+      "difficulty": "Medium",
+      "tags": [
+        "health-checks",
+        "self-healing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p03",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design an Active-Active Multi-Region Deployment",
+      "scenario": "Serve traffic from two regions simultaneously with data synced between them.",
+      "difficulty": "Hard",
+      "tags": [
+        "multi-region",
+        "active-active"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p04",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Graceful Degradation Strategy for a Product Page",
+      "scenario": "Decide what to show when the recommendations service is down but the page must still load.",
+      "difficulty": "Medium",
+      "tags": [
+        "graceful-degradation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p05",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Disaster Recovery Plan for a Payments Database",
+      "scenario": "Define RPO/RTO and the failover mechanism for a critical datastore.",
+      "difficulty": "Hard",
+      "tags": [
+        "disaster-recovery",
+        "rpo-rto"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p06",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Leader Election Mechanism for a Cluster",
+      "scenario": "Ensure exactly one node acts as leader, with automatic failover if it dies.",
+      "difficulty": "Hard",
+      "tags": [
+        "leader-election",
+        "consensus"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p07",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Blue-Green Deployment Pipeline",
+      "scenario": "Deploy new versions with zero downtime and instant rollback.",
+      "difficulty": "Medium",
+      "tags": [
+        "deployment",
+        "zero-downtime"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p08",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Read-Path Fallback When the Cache Cluster Is Down",
+      "scenario": "The cache is unavailable; the database alone cannot take full load. What do you do?",
+      "difficulty": "Medium",
+      "tags": [
+        "fallback",
+        "overload-protection"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p09",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design a Standby Database Promotion Workflow",
+      "scenario": "Automate promoting a replica to primary when the primary fails.",
+      "difficulty": "Medium",
+      "tags": [
+        "failover",
+        "replication"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.availability_patterns.p10",
+      "subtopic_id": "availability_patterns",
+      "subtopic_name": "Availability Patterns",
+      "title": "Design Chaos Testing for a Payment System",
+      "scenario": "Deliberately inject failures in production-like environments to validate resilience.",
+      "difficulty": "Medium",
+      "tags": [
+        "chaos-engineering"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p02",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Daily Email Digest System",
+      "scenario": "Send a personalized summary email to millions of users at a scheduled time.",
+      "difficulty": "Medium",
+      "tags": [
+        "scheduling",
+        "batch"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p03",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Cron-Based Task Scheduler Service",
+      "scenario": "A shared service other teams submit scheduled jobs to.",
+      "difficulty": "Medium",
+      "tags": [
+        "scheduling",
+        "distributed-cron"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p04",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Data Export Feature",
+      "scenario": "A user requests an export of all their data; generate and deliver it asynchronously.",
+      "difficulty": "Easy",
+      "tags": [
+        "async",
+        "gdpr"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p05",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Retry Strategy for Failed Background Jobs",
+      "scenario": "Jobs fail transiently; design backoff, retry limits, and dead-letter handling.",
+      "difficulty": "Medium",
+      "tags": [
+        "retries",
+        "dlq"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p06",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Billing Invoice Generation Pipeline",
+      "scenario": "Generate and send invoices to all customers at the end of each billing cycle.",
+      "difficulty": "Medium",
+      "tags": [
+        "batch",
+        "billing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p07",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Search Index Rebuild Job",
+      "scenario": "Periodically rebuild a search index from the source of truth without downtime.",
+      "difficulty": "Hard",
+      "tags": [
+        "indexing",
+        "zero-downtime"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p08",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Job Priority Queue",
+      "scenario": "Some background jobs are urgent (password reset emails), others are not (weekly digests).",
+      "difficulty": "Medium",
+      "tags": [
+        "prioritization"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p09",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Distributed Cron Service Avoiding Duplicate Runs",
+      "scenario": "Ensure a scheduled job runs exactly once even with multiple scheduler instances.",
+      "difficulty": "Hard",
+      "tags": [
+        "idempotency",
+        "distributed-cron"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.background_jobs.p10",
+      "subtopic_id": "background_jobs",
+      "subtopic_name": "Background Jobs",
+      "title": "Design a Media Thumbnail Generation Pipeline",
+      "scenario": "Generate multiple thumbnail sizes for every uploaded image, asynchronously.",
+      "difficulty": "Easy",
+      "tags": [
+        "async",
+        "media"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p01",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Explain How a Domain Resolves to an IP End-to-End",
+      "scenario": "Walk through resolver, root, TLD, and authoritative name servers for a cold lookup.",
+      "difficulty": "Easy",
+      "tags": [
+        "dns-resolution"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p02",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Design a GeoDNS-Based Traffic Routing Strategy",
+      "scenario": "Route users to the nearest healthy region using DNS.",
+      "difficulty": "Medium",
+      "tags": [
+        "geodns",
+        "routing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p03",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Explain DNS-Based Load Balancing vs a Hardware Load Balancer",
+      "scenario": "Compare trade-offs for distributing traffic across servers.",
+      "difficulty": "Easy",
+      "tags": [
+        "load-balancing",
+        "trade-offs"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p04",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Design a DNS Failover Strategy for a Multi-Region Service",
+      "scenario": "Automatically stop routing to a region failing health checks.",
+      "difficulty": "Medium",
+      "tags": [
+        "failover",
+        "health-checks"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p05",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Explain the Effect of TTL on a DNS-Based Deployment Cutover",
+      "scenario": "How does the chosen DNS TTL affect how fast a migration can be rolled back?",
+      "difficulty": "Easy",
+      "tags": [
+        "ttl",
+        "migration"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p06",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Design a Split-Horizon DNS Setup for Internal vs External Traffic",
+      "scenario": "Internal services should resolve differently than public clients.",
+      "difficulty": "Medium",
+      "tags": [
+        "split-horizon"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p07",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Explain Anycast DNS and Why CDNs Use It",
+      "scenario": "How does routing the same IP from many locations improve latency and resilience?",
+      "difficulty": "Medium",
+      "tags": [
+        "anycast",
+        "cdn"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p08",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Design a Service Discovery Mechanism Using DNS",
+      "scenario": "Internal microservices need to find each other's current instances.",
+      "difficulty": "Medium",
+      "tags": [
+        "service-discovery"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p09",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Diagnose a DNS Propagation Delay Incident",
+      "scenario": "A DNS record was changed but some users still hit the old server. Why, and what would you check?",
+      "difficulty": "Easy",
+      "tags": [
+        "troubleshooting"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.dns.p10",
+      "subtopic_id": "dns",
+      "subtopic_name": "Domain Name System",
+      "title": "Design a Rate-Limited Public DNS Resolver",
+      "scenario": "Prevent a public-facing recursive resolver from being used for DDoS amplification.",
+      "difficulty": "Hard",
+      "tags": [
+        "security",
+        "abuse-prevention"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p02",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design Image Delivery for a Social Media App",
+      "scenario": "Serve resized, compressed images quickly to users worldwide.",
+      "difficulty": "Medium",
+      "tags": [
+        "media",
+        "edge-caching"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p03",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design Cache Invalidation for a CDN-Fronted API",
+      "scenario": "A backend value changes; purge or update the CDN's cached copy correctly.",
+      "difficulty": "Hard",
+      "tags": [
+        "cache-invalidation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p04",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Choose Between Push CDN and Pull CDN for a Video Platform",
+      "scenario": "Trade-offs for origin load, freshness, and storage cost.",
+      "difficulty": "Easy",
+      "tags": [
+        "push-vs-pull"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p05",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design Edge Compute for A/B Testing at the CDN Layer",
+      "scenario": "Run experiment bucketing logic at the edge, before hitting origin.",
+      "difficulty": "Medium",
+      "tags": [
+        "edge-compute"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p06",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design a Signed URL Scheme for Private CDN Content",
+      "scenario": "Serve paid video content through a CDN without letting it be freely redistributed.",
+      "difficulty": "Medium",
+      "tags": [
+        "security",
+        "signed-urls"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p07",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design Origin Shield to Protect a Backend from Cache Misses",
+      "scenario": "Prevent a cold cache from causing a thundering herd on the origin.",
+      "difficulty": "Medium",
+      "tags": [
+        "origin-shield",
+        "stampede"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p08",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design Multi-CDN Failover for a High-Traffic Site",
+      "scenario": "Avoid a single CDN provider outage taking the whole site down.",
+      "difficulty": "Hard",
+      "tags": [
+        "multi-cdn",
+        "failover"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p09",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Explain Cache-Control Headers for a Mixed Static/Dynamic Site",
+      "scenario": "Decide caching policy per content type (HTML, JS bundle, user avatar).",
+      "difficulty": "Easy",
+      "tags": [
+        "http-caching"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cdn.p10",
+      "subtopic_id": "cdn",
+      "subtopic_name": "Content Delivery Networks",
+      "title": "Design Live Video Streaming Delivery via CDN",
+      "scenario": "Distribute a live stream to millions of concurrent viewers with low latency.",
+      "difficulty": "Hard",
+      "tags": [
+        "live-streaming"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p02",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Compare Layer 4 vs Layer 7 Load Balancing",
+      "scenario": "Trade-offs for a service that needs content-based routing vs raw throughput.",
+      "difficulty": "Easy",
+      "tags": [
+        "l4-vs-l7"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p03",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design Consistent Hashing for a Sharded Cache Cluster",
+      "scenario": "Add/remove cache nodes without invalidating most of the cache.",
+      "difficulty": "Hard",
+      "tags": [
+        "consistent-hashing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p04",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design Load Balancing for Long-Lived WebSocket Connections",
+      "scenario": "Standard round robin doesn't work well for sticky, long-lived connections.",
+      "difficulty": "Medium",
+      "tags": [
+        "websockets",
+        "sticky-sessions"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p05",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design a Weighted Load Balancing Strategy for Canary Releases",
+      "scenario": "Send 5% of traffic to a new version before a full rollout.",
+      "difficulty": "Medium",
+      "tags": [
+        "canary",
+        "weighted-routing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p06",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design Load Balancer Health Checks for a Rolling Deployment",
+      "scenario": "Avoid routing traffic to instances that are still starting up.",
+      "difficulty": "Easy",
+      "tags": [
+        "health-checks",
+        "deployment"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p07",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design Global Server Load Balancing Across Regions",
+      "scenario": "Route users to the best region based on latency and capacity.",
+      "difficulty": "Hard",
+      "tags": [
+        "gslb",
+        "multi-region"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p08",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design a Load Balancer for a gRPC Service",
+      "scenario": "HTTP/2 multiplexed connections behave differently than plain HTTP/1.1 for load balancing.",
+      "difficulty": "Medium",
+      "tags": [
+        "grpc",
+        "http2"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p09",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Explain Least-Connections vs Round-Robin Balancing",
+      "scenario": "When does tracking active connections beat simple rotation?",
+      "difficulty": "Easy",
+      "tags": [
+        "algorithms"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.load_balancing.p10",
+      "subtopic_id": "load_balancing",
+      "subtopic_name": "Load Balancing",
+      "title": "Design Load Shedding for an Overloaded API",
+      "scenario": "When the system is past capacity, decide which requests to reject first.",
+      "difficulty": "Medium",
+      "tags": [
+        "load-shedding",
+        "overload"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p02",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design a Monolith-to-Microservices Migration Plan",
+      "scenario": "Incrementally split a monolith without a risky big-bang rewrite.",
+      "difficulty": "Hard",
+      "tags": [
+        "migration",
+        "strangler-fig"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p03",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design an API Gateway for 50 Microservices",
+      "scenario": "Centralize auth, rate limiting, and routing for many backend services.",
+      "difficulty": "Medium",
+      "tags": [
+        "api-gateway"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p04",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design Service-to-Service Authentication in a Microservices Mesh",
+      "scenario": "Services must verify each other's identity, not just the end user's.",
+      "difficulty": "Medium",
+      "tags": [
+        "mtls",
+        "service-mesh"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p05",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design a Backend-for-Frontend (BFF) for Mobile vs Web",
+      "scenario": "Different clients need different shapes of the same underlying data.",
+      "difficulty": "Medium",
+      "tags": [
+        "bff"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p06",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design Service Discovery for Dynamically Scaling Containers",
+      "scenario": "Instances come and go; callers need to always find a live one.",
+      "difficulty": "Medium",
+      "tags": [
+        "service-discovery"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p07",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design a Saga Pattern for a Multi-Service Order Workflow",
+      "scenario": "An order touches inventory, payment, and shipping services; handle partial failure.",
+      "difficulty": "Hard",
+      "tags": [
+        "saga",
+        "distributed-transactions"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p08",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design an Event-Driven Architecture for an Order System",
+      "scenario": "Services react to events rather than calling each other directly.",
+      "difficulty": "Hard",
+      "tags": [
+        "event-driven"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p09",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design a Feature Flag System for Gradual Rollouts",
+      "scenario": "Turn features on for specific user segments without a redeploy.",
+      "difficulty": "Medium",
+      "tags": [
+        "feature-flags"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.application_layer.p10",
+      "subtopic_id": "application_layer",
+      "subtopic_name": "Application Layer & Microservices",
+      "title": "Design a GraphQL Gateway Over Existing REST Microservices",
+      "scenario": "Let clients query multiple services in one request without over-fetching.",
+      "difficulty": "Medium",
+      "tags": [
+        "graphql"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p03",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Choose a Sharding Key for a Multi-Tenant SaaS Database",
+      "scenario": "Pick a shard key that avoids hot shards across very different tenant sizes.",
+      "difficulty": "Hard",
+      "tags": [
+        "sharding"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p04",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design Schema Migration for a Zero-Downtime Deployment",
+      "scenario": "Change a production table's schema without taking the service down.",
+      "difficulty": "Medium",
+      "tags": [
+        "migrations"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p05",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Compare Document, Column-Family, and Graph Databases for a Social Network",
+      "scenario": "Pick a data model to match friend-of-friend and content-feed queries.",
+      "difficulty": "Medium",
+      "tags": [
+        "nosql",
+        "data-modeling"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p06",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design a Time-Series Database Schema for IoT Sensor Data",
+      "scenario": "Millions of sensors reporting every few seconds; design for write throughput and range queries.",
+      "difficulty": "Hard",
+      "tags": [
+        "time-series",
+        "iot"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p07",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design Database Connection Pooling for a High-Concurrency Service",
+      "scenario": "Many app instances must share a limited number of database connections efficiently.",
+      "difficulty": "Easy",
+      "tags": [
+        "connection-pooling"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p08",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design a Search Index Alongside a Primary Database",
+      "scenario": "Full-text search doesn't fit well in a relational index; keep a search engine in sync.",
+      "difficulty": "Medium",
+      "tags": [
+        "search",
+        "dual-write"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p09",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design Database Partitioning for a Multi-Year Transaction Log",
+      "scenario": "Old data is rarely queried; keep it cheap to store without slowing down recent queries.",
+      "difficulty": "Medium",
+      "tags": [
+        "partitioning"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.databases.p10",
+      "subtopic_id": "databases",
+      "subtopic_name": "Databases",
+      "title": "Design a Write-Ahead Log Based Durability Strategy",
+      "scenario": "Explain how a database guarantees committed writes survive a crash.",
+      "difficulty": "Medium",
+      "tags": [
+        "wal",
+        "durability"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p03",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design Cache-Aside vs Write-Through for a User Profile Service",
+      "scenario": "Compare consistency and complexity trade-offs for two caching strategies.",
+      "difficulty": "Easy",
+      "tags": [
+        "cache-patterns"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p04",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design Cache Invalidation for a Multi-Service Architecture",
+      "scenario": "A value changes in one service; every cache that holds it must be updated or expired.",
+      "difficulty": "Hard",
+      "tags": [
+        "invalidation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p05",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design a Cache Warming Strategy After a Deployment",
+      "scenario": "Avoid a flood of cache misses right after restarting cache nodes.",
+      "difficulty": "Medium",
+      "tags": [
+        "cache-warming"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p06",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design Protection Against Cache Stampede for a Popular Key",
+      "scenario": "Many requests miss the same expiring key simultaneously and hammer the database.",
+      "difficulty": "Medium",
+      "tags": [
+        "stampede",
+        "locking"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p07",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design a Multi-Layer Caching Strategy (Browser, CDN, App, DB)",
+      "scenario": "Decide what to cache at each layer and for how long.",
+      "difficulty": "Medium",
+      "tags": [
+        "layered-caching"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p08",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design an LRU Cache as a Standalone Component",
+      "scenario": "Implement eviction policy and complexity trade-offs for a bounded-size cache.",
+      "difficulty": "Easy",
+      "tags": [
+        "eviction-policy"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p09",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design Write-Behind Caching for a High-Write Analytics Counter",
+      "scenario": "Batch writes through the cache to the database to absorb a write-heavy workload.",
+      "difficulty": "Medium",
+      "tags": [
+        "write-behind"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.caching.p10",
+      "subtopic_id": "caching",
+      "subtopic_name": "Caching",
+      "title": "Design Cache Partitioning Across Multiple Redis Clusters",
+      "scenario": "A single cache node can't hold the whole working set; split it without hotspotting.",
+      "difficulty": "Hard",
+      "tags": [
+        "cache-sharding"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p02",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design an Event Bus for Order and Inventory Updates",
+      "scenario": "Decouple order processing from inventory, shipping, and analytics consumers.",
+      "difficulty": "Medium",
+      "tags": [
+        "event-bus",
+        "pub-sub"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p03",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design At-Least-Once vs Exactly-Once Message Processing",
+      "scenario": "Compare the guarantees and the application-level work each requires.",
+      "difficulty": "Hard",
+      "tags": [
+        "delivery-guarantees"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p04",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design a Dead-Letter Queue Strategy for Poison Messages",
+      "scenario": "A malformed message keeps failing processing; prevent it from blocking the queue.",
+      "difficulty": "Medium",
+      "tags": [
+        "dlq"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p05",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design Backpressure Handling for a Slow Downstream Consumer",
+      "scenario": "Producers outpace consumers; decide how to avoid unbounded queue growth.",
+      "difficulty": "Medium",
+      "tags": [
+        "backpressure"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p06",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design a Pub-Sub System for Live Sports Score Updates",
+      "scenario": "Push updates to many subscribed clients with low latency.",
+      "difficulty": "Medium",
+      "tags": [
+        "pub-sub",
+        "real-time"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p07",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design Ordered Message Processing Per User in a Shared Queue",
+      "scenario": "Guarantee per-user ordering while still processing different users in parallel.",
+      "difficulty": "Hard",
+      "tags": [
+        "ordering",
+        "partitioning"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p08",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design Async Email Sending with Delivery Confirmation Tracking",
+      "scenario": "Decouple sending from the request path while tracking bounces and opens.",
+      "difficulty": "Easy",
+      "tags": [
+        "async",
+        "email"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p09",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design a Webhook Delivery System with Retries",
+      "scenario": "Reliably deliver events to third-party endpoints that may be slow or down.",
+      "difficulty": "Medium",
+      "tags": [
+        "webhooks",
+        "retries"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.asynchronism.p10",
+      "subtopic_id": "asynchronism",
+      "subtopic_name": "Asynchronism & Queues",
+      "title": "Design Event Sourcing for an Account Balance System",
+      "scenario": "Store state as a sequence of events rather than overwriting a single row.",
+      "difficulty": "Hard",
+      "tags": [
+        "event-sourcing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p02",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design Idempotency Keys for a Public REST API",
+      "scenario": "Let clients safely retry POST requests without server-side duplication.",
+      "difficulty": "Medium",
+      "tags": [
+        "idempotency-key"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p03",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design Idempotent Message Consumers for an Event-Driven System",
+      "scenario": "A consumer may receive the same event twice; processing must be safe either way.",
+      "difficulty": "Medium",
+      "tags": [
+        "event-driven"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p04",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design an Exactly-Once Email Send Guarantee",
+      "scenario": "Ensure a triggered email (e.g. 'your order shipped') is never sent twice.",
+      "difficulty": "Medium",
+      "tags": [
+        "notifications"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p05",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design Idempotent Database Migrations",
+      "scenario": "A migration script might be re-run accidentally; it must not corrupt data if it is.",
+      "difficulty": "Easy",
+      "tags": [
+        "migrations"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p06",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design an Idempotent File Upload Resume Mechanism",
+      "scenario": "A large upload is interrupted and resumed; avoid duplicate or corrupted chunks.",
+      "difficulty": "Medium",
+      "tags": [
+        "uploads",
+        "resumability"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p07",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design Idempotency for a Distributed Booking System",
+      "scenario": "Two retried requests for the same seat booking must not both succeed.",
+      "difficulty": "Hard",
+      "tags": [
+        "booking",
+        "concurrency"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p08",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Explain Why GET Should Be Idempotent but POST Is Not by Default",
+      "scenario": "Connect HTTP method semantics to retry-safety for clients and proxies.",
+      "difficulty": "Easy",
+      "tags": [
+        "http-semantics"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p09",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design Idempotent Batch Job Reprocessing",
+      "scenario": "A nightly batch job fails partway through; rerunning it must not double-process completed records.",
+      "difficulty": "Medium",
+      "tags": [
+        "batch-processing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.idempotency.p10",
+      "subtopic_id": "idempotency",
+      "subtopic_name": "Idempotent Operations",
+      "title": "Design a De-duplication Layer for an Analytics Ingestion Pipeline",
+      "scenario": "The same event may arrive more than once from unreliable client SDKs.",
+      "difficulty": "Medium",
+      "tags": [
+        "deduplication",
+        "analytics"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p02",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Compare REST, GraphQL, and gRPC for a Mobile App Backend",
+      "scenario": "Pick a protocol given mobile bandwidth and battery constraints.",
+      "difficulty": "Easy",
+      "tags": [
+        "protocols",
+        "trade-offs"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p03",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design Long Polling vs WebSockets for Live Notifications",
+      "scenario": "Compare resource usage and latency for keeping a client updated.",
+      "difficulty": "Medium",
+      "tags": [
+        "real-time",
+        "trade-offs"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p04",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design a Bi-Directional Streaming API with gRPC",
+      "scenario": "Both client and server need to push updates continuously over one connection.",
+      "difficulty": "Hard",
+      "tags": [
+        "grpc",
+        "streaming"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p05",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design Server-Sent Events for a Live Dashboard",
+      "scenario": "Push metric updates to a browser without full WebSocket complexity.",
+      "difficulty": "Easy",
+      "tags": [
+        "sse"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p06",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design a Request/Response Protocol Resilient to Mobile Network Drops",
+      "scenario": "Mobile clients lose connectivity frequently; design for graceful recovery.",
+      "difficulty": "Medium",
+      "tags": [
+        "mobile",
+        "resilience"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p07",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design API Versioning for a Public API Used by Third Parties",
+      "scenario": "Evolve the API without breaking existing integrations.",
+      "difficulty": "Medium",
+      "tags": [
+        "api-versioning"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p08",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design a Protocol for IoT Devices with Intermittent Connectivity",
+      "scenario": "Devices on cellular/LoRa connect briefly and infrequently; design the sync protocol.",
+      "difficulty": "Hard",
+      "tags": [
+        "iot",
+        "intermittent-connectivity"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p09",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design Pagination for a Large Public API",
+      "scenario": "Compare offset-based and cursor-based pagination for a feed endpoint.",
+      "difficulty": "Easy",
+      "tags": [
+        "pagination"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.communication.p10",
+      "subtopic_id": "communication",
+      "subtopic_name": "Communication Protocols",
+      "title": "Design Request Compression and Batching for a Chatty Mobile Client",
+      "scenario": "Reduce the number of round trips and bytes for a bandwidth-constrained app.",
+      "difficulty": "Medium",
+      "tags": [
+        "batching",
+        "compression"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p02",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose an N+1 Query Problem in an Order List Endpoint",
+      "scenario": "An endpoint that lists orders is making one extra query per order. Find it and fix it.",
+      "difficulty": "Easy",
+      "tags": [
+        "n-plus-one"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p03",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose a Service Degrading Under a 'Thundering Herd' After a Cache Expiry",
+      "scenario": "Every client refreshes at once right after a popular cache key expires.",
+      "difficulty": "Medium",
+      "tags": [
+        "thundering-herd"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p04",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose a Chatty Microservice Making 20 Calls Per Request",
+      "scenario": "A single user action fans out into far too many synchronous downstream calls.",
+      "difficulty": "Medium",
+      "tags": [
+        "chattiness"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p05",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose Unbounded Memory Growth in a Request-Handling Service",
+      "scenario": "A service's memory climbs steadily under sustained load until it crashes.",
+      "difficulty": "Hard",
+      "tags": [
+        "memory-leak"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p06",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose a Synchronous Call Chain Causing Cascading Timeouts",
+      "scenario": "One slow downstream call is making every upstream caller time out in sequence.",
+      "difficulty": "Medium",
+      "tags": [
+        "cascading-failure"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p07",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose Excessive Lock Contention in a High-Concurrency Counter",
+      "scenario": "A shared counter under high write concurrency has collapsed in throughput.",
+      "difficulty": "Hard",
+      "tags": [
+        "lock-contention"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p08",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose a Database Connection Pool Exhaustion Incident",
+      "scenario": "The app suddenly can't get a DB connection under moderate load; find the leak.",
+      "difficulty": "Medium",
+      "tags": [
+        "connection-pooling"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p09",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose a Full Table Scan Hiding Behind a Slow 'Simple' Query",
+      "scenario": "A query that looks trivial is actually scanning millions of rows.",
+      "difficulty": "Easy",
+      "tags": [
+        "query-planning"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.performance_antipatterns.p10",
+      "subtopic_id": "performance_antipatterns",
+      "subtopic_name": "Performance Antipatterns",
+      "title": "Diagnose a Service Spending Most of Its Time on Serialization",
+      "scenario": "Profiling shows most CPU time goes to JSON encoding/decoding, not business logic.",
+      "difficulty": "Medium",
+      "tags": [
+        "serialization-overhead"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p02",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design the Strangler Fig Pattern for a Legacy System Migration",
+      "scenario": "Incrementally replace a legacy system behind a stable interface.",
+      "difficulty": "Medium",
+      "tags": [
+        "strangler-fig",
+        "migration"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p03",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design a Sidecar Pattern for Cross-Cutting Concerns",
+      "scenario": "Add logging, metrics, and mTLS to services without modifying their code.",
+      "difficulty": "Medium",
+      "tags": [
+        "sidecar",
+        "service-mesh"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p04",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design a Circuit Breaker as a Reusable Cloud Pattern",
+      "scenario": "Generalize failure isolation into a pattern usable across many services.",
+      "difficulty": "Medium",
+      "tags": [
+        "circuit-breaker"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p05",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design the Gateway Aggregation Pattern for a Mobile Client",
+      "scenario": "Combine several backend calls into one client-facing request.",
+      "difficulty": "Medium",
+      "tags": [
+        "gateway-aggregation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p06",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design a Queue-Based Load Leveling Pattern for Bursty Traffic",
+      "scenario": "Smooth out traffic spikes by buffering work in a queue rather than scaling instantly.",
+      "difficulty": "Medium",
+      "tags": [
+        "load-leveling"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p07",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design the Anti-Corruption Layer Pattern Between Old and New Systems",
+      "scenario": "Translate between a legacy system's model and a new system's model during migration.",
+      "difficulty": "Medium",
+      "tags": [
+        "anti-corruption-layer"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p08",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design a Compute Resource Consolidation Strategy for Low-Traffic Services",
+      "scenario": "Many small, low-traffic services are wasting dedicated resources; consolidate them.",
+      "difficulty": "Easy",
+      "tags": [
+        "resource-consolidation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p09",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design the Backends-for-Frontends Pattern for Web, iOS, and Android",
+      "scenario": "Each client type gets a tailored API layer instead of one generic backend.",
+      "difficulty": "Medium",
+      "tags": [
+        "bff"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.cloud_patterns.p10",
+      "subtopic_id": "cloud_patterns",
+      "subtopic_name": "Cloud Design Patterns",
+      "title": "Design a Static Content Hosting Pattern for a Single-Page App",
+      "scenario": "Separate static asset hosting from dynamic API serving for cost and scale.",
+      "difficulty": "Easy",
+      "tags": [
+        "static-hosting"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p03",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Retry Strategy with Exponential Backoff and Jitter",
+      "scenario": "Avoid synchronized retry storms from many clients after a transient failure.",
+      "difficulty": "Easy",
+      "tags": [
+        "retries",
+        "backoff"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p04",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Timeout Strategy Across a Multi-Hop Service Call Chain",
+      "scenario": "Each hop needs its own budget so the whole chain doesn't exceed the user's patience.",
+      "difficulty": "Medium",
+      "tags": [
+        "timeouts"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p05",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Blast-Radius-Limiting Deployment Strategy",
+      "scenario": "Roll out changes to a small percentage of traffic/instances first.",
+      "difficulty": "Medium",
+      "tags": [
+        "canary",
+        "blast-radius"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p06",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design Graceful Shutdown for a Service Behind a Load Balancer",
+      "scenario": "Stop sending new requests to an instance before it terminates in-flight ones.",
+      "difficulty": "Easy",
+      "tags": [
+        "graceful-shutdown"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p07",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Rate Limiter to Protect a Backend from a Buggy Client",
+      "scenario": "One misbehaving client is hammering the API; protect the service without blocking everyone.",
+      "difficulty": "Medium",
+      "tags": [
+        "rate-limiting",
+        "abuse-protection"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p08",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Redundant Message Delivery System for Critical Alerts",
+      "scenario": "A critical alert must reach an on-call engineer even if one delivery channel fails.",
+      "difficulty": "Medium",
+      "tags": [
+        "redundancy",
+        "alerting"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p09",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design a Capacity Planning Process for Seasonal Traffic Spikes",
+      "scenario": "Prepare infrastructure for predictable but extreme spikes (e.g. a sale event).",
+      "difficulty": "Medium",
+      "tags": [
+        "capacity-planning"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.reliability.p10",
+      "subtopic_id": "reliability",
+      "subtopic_name": "Reliability & Fault Tolerance",
+      "title": "Design Health Endpoint Monitoring for a Fleet of Services",
+      "scenario": "Standardize how every service reports liveness and readiness.",
+      "difficulty": "Easy",
+      "tags": [
+        "health-checks"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p02",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design a Distributed Tracing System Across Microservices",
+      "scenario": "Follow a single request as it crosses many services, with timing per hop.",
+      "difficulty": "Hard",
+      "tags": [
+        "distributed-tracing"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p03",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design an Alerting System That Avoids Alert Fatigue",
+      "scenario": "Too many low-signal alerts are causing engineers to ignore pages. Fix the signal-to-noise ratio.",
+      "difficulty": "Medium",
+      "tags": [
+        "alerting",
+        "alert-fatigue"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p04",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design a Log Aggregation Pipeline for Hundreds of Services",
+      "scenario": "Centralize logs from everywhere so they're searchable within seconds of being written.",
+      "difficulty": "Medium",
+      "tags": [
+        "log-aggregation"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p05",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design an SLO/SLA Tracking Dashboard for a Platform Team",
+      "scenario": "Track error budgets per service against agreed service-level objectives.",
+      "difficulty": "Medium",
+      "tags": [
+        "slo",
+        "error-budget"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p06",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design Anomaly Detection for a Key Business Metric",
+      "scenario": "Automatically flag when signups or revenue deviate unusually from the normal pattern.",
+      "difficulty": "Hard",
+      "tags": [
+        "anomaly-detection"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p07",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design a Synthetic Monitoring System for Critical User Flows",
+      "scenario": "Continuously simulate real user journeys (login, checkout) to catch issues before users do.",
+      "difficulty": "Medium",
+      "tags": [
+        "synthetic-monitoring"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p08",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design Real-User Monitoring for Frontend Performance",
+      "scenario": "Measure actual page-load and interaction latency experienced by real users.",
+      "difficulty": "Medium",
+      "tags": [
+        "rum",
+        "frontend-performance"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p09",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design a Centralized Dashboard for On-Call Engineers",
+      "scenario": "One place showing system health, recent deploys, and active incidents.",
+      "difficulty": "Easy",
+      "tags": [
+        "observability",
+        "on-call"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    },
+    {
+      "id": "sd.monitoring.p10",
+      "subtopic_id": "monitoring",
+      "subtopic_name": "Monitoring & Observability",
+      "title": "Design Audit Logging for a Multi-Tenant SaaS Platform",
+      "scenario": "Every sensitive action must be attributable and tamper-evident, per tenant.",
+      "difficulty": "Medium",
+      "tags": [
+        "audit-logging",
+        "compliance"
+      ],
+      "simulatable": false,
+      "requirements": null,
+      "starter_graph": null
+    }
+  ]
+}

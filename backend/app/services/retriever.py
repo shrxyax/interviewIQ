@@ -20,8 +20,12 @@ def retrieve(query: str, k: int = 5):
     with open(METADATA_PATH, "rb") as f:
         metadata = pickle.load(f)
 
-    # Convert question into embedding
-    query_embedding = generate_embeddings([query])
+    # Convert question into embedding. bge-small expects queries to carry
+    # this instruction prefix (not used for the stored passages) to get
+    # scores comparable to the passage embeddings.
+    query_embedding = generate_embeddings(
+        [f"Represent this sentence for searching relevant passages: {query}"]
+    )
 
     # Search
     scores, indices = index.search(
@@ -36,7 +40,7 @@ def retrieve(query: str, k: int = 5):
         if idx == -1:
             continue
 
-        if score < 0.55:
+        if score < 0.35:
             continue
 
         chunk = metadata[idx].copy()

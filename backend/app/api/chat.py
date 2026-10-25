@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 from app.services.retriever import retrieve
 from app.services.prompt import build_prompt
-from app.services.llm import ask_gemini
+from app.core.llm_gateway import generate_text
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ def chat(request: ChatRequest):
     prompt = build_prompt(request.question, chunks)
 
     # Ask Gemini
-    answer = ask_gemini(prompt)
+    answer = generate_text(prompt, task="chat")
 
     sources = []
 

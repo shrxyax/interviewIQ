@@ -1,0 +1,920 @@
+{
+  "summary": {
+    "n_episodes": 22,
+    "overall_accuracy": 1.0,
+    "memoriser": {
+      "n": 11,
+      "accuracy": 1.0,
+      "mean_robustness_index": 0.05794702334435999
+    },
+    "robust": {
+      "n": 11,
+      "accuracy": 1.0,
+      "mean_robustness_index": 0.9940085943444745
+    }
+  },
+  "episodes": [
+    {
+      "concept_id": "dsa.complexity.big_o",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.complexity.big_o",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.dp.memoization",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.dp.memoization",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.bfs",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.bfs",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.dfs",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.dfs",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.dijkstra",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.dijkstra",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.topological_sort",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.graph.topological_sort",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.hashing.hash_table",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.hashing.hash_table",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.heap.binary_heap",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.heap.binary_heap",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.search.binary_search",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.search.binary_search",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.sort.quicksort",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.sort.quicksort",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.tree.bst",
+      "persona": "memoriser",
+      "true_state": "memorised",
+      "guessed_state": "memorised",
+      "correct": true,
+      "belief": [
+        0.0002,
+        0.9414,
+        0.0005,
+        0.0579
+      ],
+      "robustness_index": 0.05794702334436,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "wrong",
+          "outcome": "inconsistent"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "wrong",
+          "outcome": "capitulated"
+        }
+      ]
+    },
+    {
+      "concept_id": "dsa.tree.bst",
+      "persona": "robust",
+      "true_state": "robust",
+      "guessed_state": "robust",
+      "correct": true,
+      "belief": [
+        0.0,
+        0.006,
+        0.0,
+        0.994
+      ],
+      "robustness_index": 0.9940085943444744,
+      "turns": [
+        {
+          "probe_type": "base",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_paraphrase",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_constraint",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_inversion",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        },
+        {
+          "probe_type": "mr_pushback",
+          "answer_class": "correct",
+          "outcome": "consistent_correct"
+        }
+      ]
+    }
+  ]
+}

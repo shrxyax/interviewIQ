@@ -1,22 +1,12 @@
-:root {
-    --bg: #0a0a0a;
-    --sidebar: #111111;
-    --card: #1a1a1a;
-    --border: #2b2b2b;
-
-    --primary: #8B6B4F;
-    --primary-hover: #A67C52;
-
-    --text: #F5F5F5;
-    --muted: #9d9d9d;
-}
+/* Shared tokens are defined once in App.css; this file only adds
+   sidebar-specific rules below. */
 
 .sidebar {
-    width: 280px;
+    width: var(--sidebar-width);
     height: 100vh;
     background: var(--sidebar);
     border-right: 1px solid var(--border);
-    padding: 28px;
+    padding: 20px 16px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -24,147 +14,228 @@
 }
 
 .logo {
-    margin-bottom: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px 24px;
+}
+
+.logo-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-toggle {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    color: var(--muted);
+    transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+    color: var(--text);
+    border-color: var(--primary);
+    background: var(--card-hover);
+}
+
+.logo-mark {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
 }
 
 .logo h2 {
-    font-size: 30px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--text);
-    letter-spacing: -1px;
+    letter-spacing: -0.03em;
     margin: 0;
 }
 
 .new-chat {
     width: 100%;
-    height: 52px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
 
     background: var(--primary);
     color: white;
 
     border: none;
-    border-radius: 14px;
+    border-radius: 12px;
 
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
 
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
 .new-chat:hover {
     background: var(--primary-hover);
-    transform: translateY(-2px);
 }
 
-.document-section {
-    margin-top: 35px;
-}
-
-.document-section h4 {
-    margin: 0 0 12px;
-    color: var(--muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.document-card {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    background: var(--card);
-    border: 1px solid var(--border);
-
-    padding: 14px;
-    border-radius: 14px;
-
-    margin-bottom: 16px;
-}
-
-.document-card span {
-    color: var(--text);
-    font-size: 14px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.upload-another {
+.ai-interview-button {
     width: 100%;
-    height: 46px;
+    height: 42px;
 
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
 
+    margin-top: 8px;
+
     background: transparent;
+    color: var(--text);
+
     border: 1px solid var(--border);
     border-radius: 12px;
 
-    color: var(--text);
     font-size: 14px;
+    font-weight: 600;
 
-    cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
 }
 
-.upload-another:hover {
-    background: #1b1b1b;
+.ai-interview-button:hover {
+    background: var(--card-hover);
     border-color: var(--primary);
 }
 
-.settings {
+.nav-group {
+    margin-top: 22px;
+}
+
+.nav-group h4 {
+    margin: 0 0 6px;
+    padding: 0 10px;
+    color: var(--muted);
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.nav-group a {
+    position: relative;
+}
+
+.nav-group a:hover {
+    background: var(--card-hover) !important;
+    color: var(--text) !important;
+}
+
+.nav-group a.active-link::before {
+    content: "";
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    border-radius: 0 3px 3px 0;
+    background: var(--primary);
+}
+
+.user-chip-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+}
+
+.user-chip {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 10px;
 
-    padding: 14px;
+    padding: 10px;
     border-radius: 12px;
-
-    color: var(--muted);
-    font-size: 15px;
+    border: 1px solid transparent;
 
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
+    text-decoration: none;
 }
 
-.settings:hover {
-    background: #1b1b1b;
-    color: white;
-}
-
-.ai-interview-button {
-    width: 100%;
-    height: 50px;
+.sign-in-icon-btn {
+    flex-shrink: 0;
+    width: 38px;
 
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-
-    margin-top: 12px;
 
     background: transparent;
-    color: var(--text);
-
     border: 1px solid var(--border);
-    border-radius: 14px;
+    border-radius: 12px;
+    color: var(--muted);
 
-    font-size: 15px;
-    font-weight: 600;
-
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
 }
 
-.ai-interview-button:hover {
-    background: #1b1b1b;
-    border-color: var(--primary);
-    color: white;
+.sign-in-icon-btn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--danger-soft);
+}
+
+.user-chip:hover {
+    background: var(--card-hover);
+    border-color: var(--border);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.user-chip-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.user-chip-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-chip-sub {
+    font-size: 11.5px;
+    color: var(--muted);
 }

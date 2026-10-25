@@ -1,0 +1,109 @@
+{
+  "topics": [
+    {
+      "id": "core_cs.os", "name": "Operating Systems",
+      "notes": [
+        {
+          "title": "Process vs Thread",
+          "body": "A **process** has its own memory space; a **thread** shares memory with other threads in the same process.\n\n- Context-switching threads is cheaper than processes (no address-space switch).\n- Threads need explicit synchronization (locks, semaphores) since they share memory.\n- Common interview probe: *what breaks if two threads increment the same counter without a lock?*"
+        },
+        {
+          "title": "Deadlock: the Four Conditions",
+          "body": "A deadlock requires all four of: **mutual exclusion**, **hold and wait**, **no preemption**, **circular wait**. Breaking any one prevents it.\n\n- Prevention: acquire locks in a fixed global order (breaks circular wait).\n- Detection: resource-allocation graph cycle detection.\n- A classic interview trap: *'our deadlock only happens under negative/variable timing'* — tests whether you understand it's a race, not a deterministic bug."
+        },
+        {
+          "title": "Virtual Memory & Paging",
+          "body": "Each process sees a contiguous virtual address space; the OS maps virtual pages to physical frames via a **page table**.\n\n- A **page fault** occurs when a referenced page isn't in physical memory.\n- Thrashing: when the working set exceeds available RAM, causing constant paging and collapsing throughput.\n- TLB (Translation Lookaside Buffer) caches recent translations to avoid a page-table walk on every memory access."
+        },
+        {
+          "title": "Scheduling Algorithms",
+          "body": "- **FCFS**: simple, can cause convoy effect.\n- **SJF**: optimal average wait time, but needs to know burst length (often estimated).\n- **Round Robin**: fair, time-sliced; quantum size trades off responsiveness vs context-switch overhead.\n- **Priority scheduling**: risk of starvation, mitigated by aging."
+        }
+      ]
+    },
+    {
+      "id": "core_cs.dbms", "name": "Databases (DBMS)",
+      "notes": [
+        {
+          "title": "ACID Properties",
+          "body": "**Atomicity** (all-or-nothing), **Consistency** (valid state to valid state), **Isolation** (concurrent transactions don't interfere), **Durability** (committed survives a crash).\n\n- Isolation is the one with real trade-offs: serializable is safest and slowest; read-committed is common and allows some anomalies."
+        },
+        {
+          "title": "Normalization (1NF → 3NF)",
+          "body": "- **1NF**: atomic columns, no repeating groups.\n- **2NF**: 1NF + no partial dependency on a composite key.\n- **3NF**: 2NF + no transitive dependency (non-key columns depend only on the key).\n\nNormalizing reduces update anomalies but can increase the number of joins needed — denormalization is a deliberate trade for read performance."
+        },
+        {
+          "title": "Indexes: B-Tree vs Hash",
+          "body": "A **B-Tree index** supports range queries and ordering (`WHERE x > 5`, `ORDER BY`); a **hash index** supports only equality lookups but is O(1) average.\n\n- Most relational databases default to B-Tree indexes because range queries are common.\n- An index on a low-cardinality column (e.g. boolean) often doesn't help — the optimizer may ignore it."
+        },
+        {
+          "title": "Isolation Levels & Anomalies",
+          "body": "- **Read Uncommitted**: dirty reads possible.\n- **Read Committed**: no dirty reads, but non-repeatable reads possible.\n- **Repeatable Read**: no non-repeatable reads, but phantom reads possible (in some engines).\n- **Serializable**: no anomalies, but lowest concurrency.\n\nInterview probe: *given this isolation level, what could go wrong with two concurrent transfers between the same two accounts?*"
+        }
+      ]
+    },
+    {
+      "id": "core_cs.cn", "name": "Computer Networks",
+      "notes": [
+        {
+          "title": "TCP vs UDP",
+          "body": "**TCP**: connection-oriented, reliable, ordered, flow/congestion controlled — at the cost of latency (handshake, retransmits).\n**UDP**: connectionless, no ordering/reliability guarantees — lower latency, used where an app can tolerate loss (video calls, DNS, gaming)."
+        },
+        {
+          "title": "The Three-Way Handshake",
+          "body": "SYN → SYN-ACK → ACK establishes a TCP connection, synchronizing initial sequence numbers both ways.\n\n- A SYN flood (sending SYNs and never completing the handshake) exhausts the server's half-open connection table — a classic DoS vector mitigated by SYN cookies."
+        },
+        {
+          "title": "DNS Resolution Path",
+          "body": "Browser cache → OS cache → recursive resolver → root server → TLD server → authoritative server. Each step is cached with a TTL, which is why DNS changes don't propagate instantly."
+        },
+        {
+          "title": "HTTP/1.1 vs HTTP/2",
+          "body": "HTTP/1.1 opens multiple connections to work around head-of-line blocking from one request blocking the next. HTTP/2 multiplexes many streams over one connection, with header compression — but head-of-line blocking can still occur at the TCP layer if a packet is lost (addressed by QUIC/HTTP3, which runs over UDP)."
+        }
+      ]
+    },
+    {
+      "id": "core_cs.oop", "name": "Object-Oriented Programming",
+      "notes": [
+        {
+          "title": "The Four Pillars",
+          "body": "**Encapsulation** (hide internal state), **Abstraction** (expose only what's needed), **Inheritance** (reuse via an is-a relationship), **Polymorphism** (one interface, many implementations)."
+        },
+        {
+          "title": "Composition over Inheritance",
+          "body": "Inheritance creates tight coupling to a parent's implementation and can break with deep hierarchies (the fragile base class problem). Composition (\"has-a\") is often more flexible: build behavior by combining small, swappable objects rather than extending a class."
+        },
+        {
+          "title": "SOLID Principles",
+          "body": "- **S**ingle Responsibility\n- **O**pen/Closed (open for extension, closed for modification)\n- **L**iskov Substitution (a subtype must be substitutable for its base type)\n- **I**nterface Segregation (many small interfaces over one large one)\n- **D**ependency Inversion (depend on abstractions, not concretions)"
+        },
+        {
+          "title": "Common Design Patterns",
+          "body": "- **Singleton**: one instance, global access point (watch for hidden global state / testability issues).\n- **Factory**: delegate object creation to a method, decoupling the caller from concrete classes.\n- **Observer**: subscribers get notified of changes in a subject (pub/sub is this pattern distributed).\n- **Strategy**: swap an algorithm's implementation at runtime behind a common interface."
+        }
+      ]
+    },
+    {
+      "id": "core_cs.coa", "name": "Computer Organization & Architecture",
+      "notes": [
+        {
+          "title": "The Memory Hierarchy",
+          "body": "Registers → L1/L2/L3 cache → RAM → SSD/disk, each level trading capacity for speed. A program with good **locality of reference** (temporal and spatial) runs much faster because it hits the fast, small levels more often."
+        },
+        {
+          "title": "Cache Lines & False Sharing",
+          "body": "CPUs fetch memory in fixed-size cache lines (commonly 64 bytes). If two threads on different cores modify different variables that happen to sit on the same cache line, the cache-coherence protocol bounces the line between cores — **false sharing** — silently destroying performance despite no logical data race."
+        },
+        {
+          "title": "Pipelining & Branch Prediction",
+          "body": "Instruction pipelining overlaps fetch/decode/execute/writeback stages across instructions. A mispredicted branch flushes the pipeline, costing cycles — which is why tight, predictable loops are often faster than code with many unpredictable branches."
+        },
+        {
+          "title": "Instruction Set Basics: CISC vs RISC",
+          "body": "**CISC** (e.g. x86): fewer, more complex instructions, variable length. **RISC** (e.g. ARM): simpler, fixed-length instructions, more registers, designed for efficient pipelining — a major reason ARM chips are power-efficient."
+        }
+      ]
+    }
+  ]
+}

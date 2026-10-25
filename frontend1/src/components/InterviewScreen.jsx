@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Camera,
   CameraOff,
   Send,
   LogOut,
@@ -18,31 +17,79 @@ import './Interview.css';
 import {
   initializeFaceDetector,
   detectFace,
+  getAffectSignal,
 } from "../services/faceDetection";
 
-const INTERVIEW_DURATION = 30 * 60; // 30 minutes
-// For testing, temporarily use: 6 * 60
+/*
+ * This screen is a dumb renderer over the backend-owned interview state
+ * machine (see app/modules/interview/service.py). `session` is whatever
+ * the last /interview/sessions response was: { state, question,
+ * question_number, total_questions, time_remaining_seconds, context }.
+ * It never invents its own notion of "which question we're on" or
+ * "whether the interview is over" - that always comes from the server,
+ * including after a page refresh.
+ */
+// Speech-synthesis duration is estimated from text length at a slow,
+// safely-overestimated rate (characters/sec) so the watchdog never fires
+// before a real utterance of that length could plausibly finish.
+const SPEECH_CHARS_PER_SEC = 15;
+const SPEECH_WATCHDOG_BUFFER_MS = 4000;
+const SPEECH_WATCHDOG_MIN_MS = 8000;
+const SPEECH_WATCHDOG_MAX_MS = 45000;
+
+// Averages this question's collected MediaPipe affect samples into one
+// small object, or null if the camera was unavailable/denied/no face was
+// ever detected during the answer window.
+const averageAffectSamples = (samples) => {
+  if (!samples || !samples.length) {
+    return null;
+  }
+
+  const keys = Object.keys(samples[0]);
+  const averaged = {};
+
+  for (const key of keys) {
+    const sum = samples.reduce((total, s) => total + s[key], 0);
+    averaged[key] = Math.round((sum / samples.length) * 1000) / 1000;
+  }
+
+  return averaged;
+};
 
 export default function InterviewScreen({
-  interviewData,
+  session,
   onExit,
-  onComplete,
-  onTimeUp,
+  onReadyForAnswer,
+  onSubmitAnswer,
+  onTimeExpired,
+  onProctoringEvent,
+  onSync,
 }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const timerRef = useRef(null);
+  const syncIntervalRef = useRef(null);
   const recognitionRef = useRef(null);
+  const lastSpokenQuestionRef = useRef(null);
+
+  // Guards the in-flight speakQuestion call: only one of {watchdog timeout,
+  // utterance onend/onerror, forced-by-tab-hide} may actually invoke onDone.
+  const speechDoneRef = useRef(null);
+  const speechWatchdogRef = useRef(null);
 
   const faceDetectionIntervalRef = useRef(null);
   const faceDetectorRef = useRef(null);
+  const lastFaceDetectedRef = useRef(null);
+
+  // Per-question MediaPipe blendshape-derived affect samples, reset whenever
+  // a new question starts; averaged into one small object on submit (Phase 9b).
+  const emotionSamplesRef = useRef([]);
 
   const [cameraAvailable, setCameraAvailable] = useState(false);
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [timeLeft, setTimeLeft] =
-    useState(INTERVIEW_DURATION);
+  const [timeLeft, setTimeLeft] = useState(session.time_remaining_seconds ?? 0);
 
   // Voice states
   const [isListening, setIsListening] = useState(false);
@@ -138,6 +185,7 @@ export default function InterviewScreen({
       stopCamera();
 
       clearInterval(timerRef.current);
+      clearInterval(syncIntervalRef.current);
 
       clearInterval(
         faceDetectionIntervalRef.current
@@ -148,11 +196,19 @@ export default function InterviewScreen({
       }
 
       window.speechSynthesis.cancel();
+
+      // Deliberately doesn't clear the speech watchdog or null speechDoneRef
+      // here: this effect's cleanup also runs on React's dev-mode StrictMode
+      // double-invoke (mount -> cleanup -> mount again) while the component
+      // is still alive, and an in-flight speakQuestion() call (owned by the
+      // other effect) must survive that round-trip intact.
     };
   }, []);
 
   /*
-   * Timer reaches zero
+   * Timer reaches zero: tell the parent so it can resync with the
+   * backend, which owns the real clock and will have already moved the
+   * session into TIME_EXPIRED / REPORT.
    */
   useEffect(() => {
     if (timeLeft === 0) {
@@ -170,65 +226,35 @@ export default function InterviewScreen({
 
       window.speechSynthesis.cancel();
 
-      setIsListening(false);
-      setIsSpeaking(false);
-
-      if (onTimeUp) {
-        onTimeUp();
-      }
-    }
-  }, [timeLeft, onTimeUp]);
-
-  //tab visibility
-
-  useEffect(() => {
-  const handleVisibilityChange = () => {
-    const visible = !document.hidden;
-
-    setPageVisible(visible);
-
-    if (!visible) {
-      window.speechSynthesis.cancel();
-
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      clearTimeout(speechWatchdogRef.current);
+      speechDoneRef.current = null;
 
       setIsListening(false);
       setIsSpeaking(false);
+
+      if (onTimeExpired) {
+        onTimeExpired();
+      }
     }
-  };
-
-  document.addEventListener(
-    "visibilitychange",
-    handleVisibilityChange
-  );
-
-  return () => {
-    document.removeEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
-  };
-}, []);
+  }, [timeLeft, onTimeExpired]);
 
   /*
-   * Speak every new AI question
-   */
-  useEffect(() => {
-    if (interviewData?.question) {
-      speakQuestion(interviewData.question);
-    }
-  }, [interviewData?.question]);
-
-  /*
-   * Detect tab/window changes
+   * Tab visibility: some browsers silently pause speechSynthesis while
+   * backgrounded (and never fire onend/onerror once it's cancelled), so
+   * rather than trying to resume speech on refocus, we treat losing focus
+   * as "done speaking" and let the candidate answer whenever they're back.
+   * Also reports tab-switch events to the backend and forces a resync on
+   * refocus, since setInterval-based timeLeft can drift while backgrounded.
    */
   useEffect(() => {
     const handleVisibilityChange = () => {
       const visible = !document.hidden;
 
       setPageVisible(visible);
+
+      if (onProctoringEvent) {
+        onProctoringEvent(visible ? "tab_visible" : "tab_hidden");
+      }
 
       if (!visible) {
         window.speechSynthesis.cancel();
@@ -238,22 +264,74 @@ export default function InterviewScreen({
         }
 
         setIsListening(false);
-        setIsSpeaking(false);
+
+        if (speechDoneRef.current) {
+          finishSpeaking(speechDoneRef.current);
+        }
+      } else if (onSync) {
+        onSync();
       }
     };
 
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onProctoringEvent, onSync]);
+
+  /*
+   * Periodically resync against the backend's authoritative session/clock
+   * even if the tab never loses focus, so a throttled timer can't drift
+   * far from the server before the candidate notices.
+   */
+  useEffect(() => {
+    if (!onSync) return;
+
+    syncIntervalRef.current = setInterval(() => {
+      onSync();
+    }, 20000);
+
+    return () => clearInterval(syncIntervalRef.current);
+  }, [onSync]);
+
+  /*
+   * The backend is the source of truth for time remaining; resync our
+   * local countdown display whenever a fresh session comes in (answer
+   * submitted, listening acknowledged, periodic/refocus sync, ...).
+   */
+  useEffect(() => {
+    setTimeLeft(session.time_remaining_seconds ?? 0);
+  }, [session.time_remaining_seconds]);
+
+  /*
+   * Speak the AI's question whenever the backend hands us a new one
+   * while it's in AI_SPEAKING. Once speech ends (or immediately, if
+   * speech isn't supported), tell the backend we're ready for the
+   * candidate's answer, which moves it into LISTENING.
+   */
+  useEffect(() => {
+    if (session.state !== "AI_SPEAKING" || !session.question) {
+      return;
+    }
+
+    const key = `${session.question_number}:${session.question}`;
+
+    if (lastSpokenQuestionRef.current === key) {
+      return;
+    }
+
+    lastSpokenQuestionRef.current = key;
+    emotionSamplesRef.current = [];
+
+    if (speechSupported && "speechSynthesis" in window) {
+      speakQuestion(session.question, onReadyForAnswer);
+    } else {
+      onReadyForAnswer();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.state, session.question_number, session.question]);
 
   /*
    * Start webcam
@@ -338,12 +416,31 @@ export default function InterviewScreen({
         }
 
         try {
+          const timestamp = performance.now();
           const detected = detectFace(
             videoRef.current,
-            performance.now()
+            timestamp
           );
 
           setFaceDetected(detected);
+
+          if (
+            onProctoringEvent &&
+            lastFaceDetectedRef.current !== null &&
+            lastFaceDetectedRef.current !== detected
+          ) {
+            onProctoringEvent(detected ? "face_regained" : "face_lost");
+          }
+
+          lastFaceDetectedRef.current = detected;
+
+          if (detected) {
+            const affect = getAffectSignal(videoRef.current, timestamp);
+
+            if (affect) {
+              emotionSamplesRef.current.push(affect);
+            }
+          }
         } catch (err) {
           console.error(
             "Face detection error:",
@@ -354,16 +451,56 @@ export default function InterviewScreen({
   };
 
   /*
-   * Text-to-speech for interviewer
+   * Resolves the currently in-flight speakQuestion call exactly once,
+   * whichever of {onend, onerror, watchdog timeout, tab-hide} gets there
+   * first. Clears the watchdog and the "in-flight" marker so a late event
+   * from a since-abandoned utterance can't double-fire onDone.
    */
-  const speakQuestion = (question) => {
+  const finishSpeaking = (onDone) => {
+    if (speechDoneRef.current !== onDone) {
+      return;
+    }
+
+    speechDoneRef.current = null;
+
+    if (speechWatchdogRef.current) {
+      clearTimeout(speechWatchdogRef.current);
+      speechWatchdogRef.current = null;
+    }
+
+    setIsSpeaking(false);
+
+    if (onDone) onDone();
+  };
+
+  /*
+   * Text-to-speech for interviewer. Browsers occasionally drop an
+   * utterance silently - neither onend nor onerror fires - e.g. after tab
+   * backgrounding, with certain voice-pack states, or if speak() is called
+   * while the queue is paused. A watchdog timeout guarantees onDone always
+   * runs, so the candidate is never stuck on AI_SPEAKING.
+   */
+  const speakQuestion = (question, onDone) => {
     if (
       !question ||
       !("speechSynthesis" in window)
     ) {
+      if (onDone) onDone();
       return;
     }
 
+    // A previous utterance's watchdog is now moot; its onDone has either
+    // already run or is about to be superseded by this new call.
+    if (speechWatchdogRef.current) {
+      clearTimeout(speechWatchdogRef.current);
+      speechWatchdogRef.current = null;
+    }
+
+    speechDoneRef.current = onDone;
+
+    // speechSynthesis can get stuck reporting speaking/pending true from a
+    // prior utterance; cancel() defensively before every speak() so the
+    // browser reliably fires events for this one.
     window.speechSynthesis.cancel();
 
     const utterance =
@@ -378,16 +515,34 @@ export default function InterviewScreen({
     };
 
     utterance.onend = () => {
-      setIsSpeaking(false);
+      finishSpeaking(onDone);
     };
 
     utterance.onerror = () => {
-      setIsSpeaking(false);
+      finishSpeaking(onDone);
     };
 
     window.speechSynthesis.speak(
       utterance
     );
+
+    const estimatedMs = Math.ceil(question.length / SPEECH_CHARS_PER_SEC) * 1000;
+
+    const watchdogMs = Math.min(
+      SPEECH_WATCHDOG_MAX_MS,
+      Math.max(SPEECH_WATCHDOG_MIN_MS, estimatedMs + SPEECH_WATCHDOG_BUFFER_MS)
+    );
+
+    speechWatchdogRef.current = setTimeout(() => {
+      console.warn(
+        "speechSynthesis watchdog fired: neither onend nor onerror ran within",
+        watchdogMs,
+        "ms - forcing the interview to advance."
+      );
+
+      window.speechSynthesis.cancel();
+      finishSpeaking(onDone);
+    }, watchdogMs);
   };
 
   /*
@@ -445,6 +600,8 @@ export default function InterviewScreen({
     ).padStart(2, "0")}`;
   };
 
+  const canAnswer = session.state === "LISTENING";
+
   /*
    * Submit candidate answer
    */
@@ -452,7 +609,8 @@ export default function InterviewScreen({
     if (
       !answer.trim() ||
       submitting ||
-      timeLeft === 0
+      timeLeft === 0 ||
+      !canAnswer
     ) {
       return;
     }
@@ -472,8 +630,9 @@ export default function InterviewScreen({
     setSubmitting(true);
 
     try {
-      await onComplete(
-        answer.trim()
+      await onSubmitAnswer(
+        answer.trim(),
+        averageAffectSamples(emotionSamplesRef.current)
       );
 
       setAnswer("");
@@ -513,6 +672,9 @@ export default function InterviewScreen({
 
     window.speechSynthesis.cancel();
 
+    clearTimeout(speechWatchdogRef.current);
+    speechDoneRef.current = null;
+
     setIsListening(false);
     setIsSpeaking(false);
 
@@ -525,6 +687,31 @@ export default function InterviewScreen({
       : timeLeft <= 5 * 60
       ? "timer-warning"
       : "";
+
+  const avatarState =
+    session.state === "AI_SPEAKING" || isSpeaking
+      ? "speaking"
+      : session.state === "PROCESSING" || submitting
+      ? "thinking"
+      : isListening
+      ? "listening"
+      : "idle";
+
+  const avatarStatusLabel = {
+    idle: "Ready for your answer",
+    speaking: "AI Interviewer is speaking",
+    listening: "Listening to your answer",
+    thinking: "Evaluating your answer",
+  }[avatarState];
+
+  const AvatarStatusIcon =
+    avatarState === "speaking"
+      ? Volume2
+      : avatarState === "listening"
+      ? Mic
+      : avatarState === "thinking"
+      ? Clock
+      : VolumeX;
 
   return (
     <div className="interview-screen">
@@ -539,7 +726,13 @@ export default function InterviewScreen({
             AI INTERVIEW
           </span>
 
-          <h1>Live Interview</h1>
+          <h1>{session?.context?.target_role || "Live Interview"}</h1>
+
+          {session?.context?.company && (
+            <p className="interview-topbar-sub">
+              {session.context.company}
+            </p>
+          )}
         </div>
 
         <div className="interview-topbar-actions">
@@ -574,164 +767,121 @@ export default function InterviewScreen({
           ========================= */}
       {!pageVisible && (
         <div className="page-warning">
-          <TriangleAlert size={15} />
-          Interview window inactive. Please return to
-          the interview.
+          <div className="page-warning-icon">
+            <TriangleAlert size={18} />
+          </div>
+
+          <div>
+            <strong>Interview window inactive</strong>
+
+            <span>
+              Please return to this tab to continue your interview.
+            </span>
+          </div>
         </div>
       )}
 
       {/* =========================
-          CAMERA + AI QUESTION
+          AI INTERVIEWER STAGE
           ========================= */}
-      <div className="interview-content">
-        {!pageVisible && (
-  <div className="page-warning">
-    <div className="page-warning-icon">
-      <TriangleAlert size={18} />
-    </div>
+      <div className="interview-stage">
 
-    <div>
-      <strong>Interview window inactive</strong>
-
-      <span>
-        Please return to this tab to continue your interview.
-      </span>
-    </div>
-  </div>
-)}
-
-        {/* CAMERA */}
-        <div className="interview-visuals">
-
-          <div className="camera-card">
-
-            {cameraAvailable ? (
-              <>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="webcam"
-                />
-
-                <div className="camera-status">
-                  <Camera size={14} />
-                  Camera active
-                </div>
-
-                {/* FACE PRESENCE */}
-                {faceDetectionReady && (
-  <div
-    className={`presence-status ${
-      faceDetected
-        ? "presence-ok"
-        : "presence-warning"
-    }`}
-  >
-    {faceDetected ? (
-      <>
-        <div className="presence-icon">
-          <Eye size={14} />
-        </div>
-
-        <div className="presence-text">
-          <strong>Candidate detected</strong>
-          <span>Camera monitoring active</span>
-        </div>
-      </>
-    ) : (
-      <>
-        <div className="presence-icon warning-icon">
-          <TriangleAlert size={14} />
-        </div>
-
-        <div className="presence-text">
-          <strong>Face not detected</strong>
-          <span>Please stay visible in the camera</span>
-        </div>
-      </>
-    )}
-  </div>
-)}
-              </>
-            ) : (
-              <div className="camera-placeholder">
-
-                <div className="camera-placeholder-icon">
-                  <CameraOff size={30} />
-                </div>
-
-                <h3>
-                  Camera unavailable
-                </h3>
-
-                <p>
-                  Camera access was denied or is
-                  unavailable. You can continue the
-                  interview without it.
-                </p>
-
+        <div className="ai-avatar-block">
+          <div className="ai-person-stage">
+            <div className={`ai-person state-${avatarState}`}>
+              <div className="ai-person-body">
+                <div className="ai-person-lapel left" />
+                <div className="ai-person-lapel right" />
+                <div className="ai-person-collar" />
+                <div className="ai-person-tie" />
               </div>
-            )}
 
+              <div className="ai-person-head">
+                <div className="ai-person-hair" />
+                <div className="ai-person-ear left" />
+                <div className="ai-person-ear right" />
+
+                <div className="ai-person-face">
+                  <div className="ai-person-eyebrows">
+                    <span />
+                    <span />
+                  </div>
+
+                  <div className="ai-person-eyes">
+                    <span className="ai-person-eye" />
+                    <span className="ai-person-eye" />
+                  </div>
+
+                  <div className="ai-person-nose" />
+
+                  <div className="ai-person-mouth-wrap">
+                    <div className="ai-person-mouth" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="candidate-label">
-            <UserRound size={15} />
-            Candidate
+          <div className="ai-avatar-status">
+            <AvatarStatusIcon size={15} />
+            {avatarStatusLabel}
           </div>
-
         </div>
 
-        {/* AI INTERVIEWER */}
-        <div className="interviewer-card">
+        <div className="question-block">
+          <span className="question-number">
+            Question{" "}
+            {session?.question_number}
+            {session?.total_questions ? ` of ${session.total_questions}` : ""}
+          </span>
 
-          <div className="interviewer-header">
+          <p className="question-text">
+            {session?.question}
+          </p>
+        </div>
 
-            <div className="interviewer-icon">
-              AI
-            </div>
+        {/* CANDIDATE SELF-VIEW */}
+        <div className="camera-pip">
+          {cameraAvailable ? (
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="webcam"
+              />
 
-            <div>
-              <h3>
-                AI Interviewer
-              </h3>
+              <div className="camera-pip-label">
+                <UserRound size={11} />
+                You
+              </div>
 
-              <span>
-                Placement Interview
-              </span>
-            </div>
-
-          </div>
-
-          <div className="question-area">
-
-            <span className="question-number">
-              Question{" "}
-              {interviewData?.question_number} of{" "}
-              {interviewData?.total_questions}
-            </span>
-
-            <p className="question-text">
-              {interviewData?.question}
-            </p>
-
-            <div className="speech-status">
-              {isSpeaking ? (
-                <>
-                  <Volume2 size={16} />
-                  AI Interviewer is speaking
-                </>
-              ) : (
-                <>
-                  <VolumeX size={16} />
-                  Question ready
-                </>
+              {faceDetectionReady && (
+                <div
+                  className={`presence-dot ${
+                    faceDetected ? "presence-ok" : "presence-warning"
+                  }`}
+                  title={
+                    faceDetected
+                      ? "Candidate detected"
+                      : "Face not detected — please stay visible"
+                  }
+                >
+                  {faceDetected ? (
+                    <Eye size={12} />
+                  ) : (
+                    <TriangleAlert size={12} />
+                  )}
+                </div>
               )}
+            </>
+          ) : (
+            <div className="camera-placeholder">
+              <CameraOff size={20} />
+              Camera unavailable
             </div>
-
-          </div>
+          )}
         </div>
 
       </div>
@@ -760,13 +910,16 @@ export default function InterviewScreen({
             setAnswer(e.target.value)
           }
           placeholder={
-            speechSupported
+            !canAnswer
+              ? "Please wait for the interviewer..."
+              : speechSupported
               ? "Click Start Answer and speak, or type your answer..."
               : "Type your answer..."
           }
           disabled={
             submitting ||
-            timeLeft === 0
+            timeLeft === 0 ||
+            !canAnswer
           }
           rows={5}
           onKeyDown={(e) => {
@@ -808,7 +961,8 @@ export default function InterviewScreen({
                 }
                 disabled={
                   submitting ||
-                  timeLeft === 0
+                  timeLeft === 0 ||
+                  !canAnswer
                 }
               >
                 {isListening ? (
@@ -830,7 +984,8 @@ export default function InterviewScreen({
               disabled={
                 !answer.trim() ||
                 submitting ||
-                timeLeft === 0
+                timeLeft === 0 ||
+                !canAnswer
               }
             >
               <Send size={17} />
