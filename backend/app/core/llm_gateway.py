@@ -56,12 +56,12 @@ def _cache_get(key: str) -> str | None:
         return row.response if row else None
 
 
-def _cache_put(key: str, task: str, prompt: str, response: str, latency_ms: int):
+def _cache_put(key: str, task: str, prompt: str, response: str, latency_ms: int, model: str):
     with SessionLocal() as db:
         db.add(
             LLMCall(
                 cache_key=key,
-                model=settings.gemini_model,
+                model=model,
                 task=task,
                 prompt=prompt,
                 response=response,
@@ -76,6 +76,23 @@ def _cache_put(key: str, task: str, prompt: str, response: str, latency_ms: int)
             db.rollback()
 
 
+class QuotaExhausted(LLMUnavailable):
+    pass
+
+
+# Per model: monotonic time until which it isn't tried (after a quota error).
+# Free-tier quotas are daily, so retrying a spent model only adds latency;
+# requests go to the next model in settings.gemini_models instead, and once
+# every model is spent callers fall back to their non-LLM paths.
+_paused_until: dict[str, float] = {}
+_QUOTA_COOLDOWN_S = 10 * 60
+
+
+def _is_quota_error(exc: Exception) -> bool:
+    text = str(exc)
+    return "RESOURCE_EXHAUSTED" in text or text.startswith("429")
+
+
 def _call_with_retry(fn, attempts: int = 3):
     delay = 1.0
 
@@ -84,12 +101,37 @@ def _call_with_retry(fn, attempts: int = 3):
             return fn()
         except LLMUnavailable:
             raise
-        except Exception:
+        except Exception as exc:
+            if _is_quota_error(exc):
+                raise QuotaExhausted(f"LLM quota exhausted: {str(exc)[:200]}") from exc
+
             if attempt == attempts - 1:
                 raise
 
             time.sleep(delay)
             delay *= 2
+
+
+def _generate(contents: str, config) -> tuple[object, str]:
+    """
+    generate_content on the first model in settings.gemini_models that still
+    has quota. Returns (response, model used).
+    """
+
+    for model in settings.gemini_models:
+        if time.monotonic() < _paused_until.get(model, 0.0):
+            continue
+
+        try:
+            response = _call_with_retry(
+                lambda: _get_client().models.generate_content(model=model, contents=contents, config=config)
+            )
+            return response, model
+        except QuotaExhausted:
+            _paused_until[model] = time.monotonic() + _QUOTA_COOLDOWN_S
+            print(f"Gemini model {model} is out of quota; trying the next model.")
+
+    raise LLMUnavailable("Every Gemini model is out of quota; paused until it resets.")
 
 
 def generate_text(prompt: str, task: str = "text", temperature: float = 0.7, use_cache: bool = False) -> str:
@@ -109,18 +151,12 @@ def generate_text(prompt: str, task: str = "text", temperature: float = 0.7, use
 
     start = time.perf_counter()
 
-    response = _call_with_retry(
-        lambda: _get_client().models.generate_content(
-            model=settings.gemini_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(temperature=temperature),
-        )
-    )
+    response, model = _generate(prompt, types.GenerateContentConfig(temperature=temperature))
 
     text = (response.text or "").strip()
 
     if use_cache:
-        _cache_put(key, task, prompt, text, int((time.perf_counter() - start) * 1000))
+        _cache_put(key, task, prompt, text, int((time.perf_counter() - start) * 1000), model)
 
     return text
 
@@ -145,16 +181,13 @@ def generate_structured(prompt: str, schema: type[T], task: str) -> T:
 
     start = time.perf_counter()
 
-    response = _call_with_retry(
-        lambda: _get_client().models.generate_content(
-            model=settings.gemini_model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0,
-                response_mime_type="application/json",
-                response_schema=schema,
-            ),
-        )
+    response, model = _generate(
+        prompt,
+        types.GenerateContentConfig(
+            temperature=0,
+            response_mime_type="application/json",
+            response_schema=schema,
+        ),
     )
 
     parsed = response.parsed
@@ -170,6 +203,8 @@ def generate_structured(prompt: str, schema: type[T], task: str) -> T:
         prompt,
         result.model_dump_json(),
         int((time.perf_counter() - start) * 1000),
+        model,
     )
 
     return result
+

@@ -34,23 +34,18 @@ export default function CompaniesPage() {
       <div className="grid grid-3">
         {companies.map((c) => (
           <Card key={c.id} hoverable onClick={() => navigate(`/companies/${c.id}`)}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-              <div
-                style={{
-                  width: 42, height: 42, borderRadius: 10, background: "var(--primary-soft)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
+            <div className="row" style={{ gap: 12, marginBottom: 12 }}>
+              <div className="company-logo">
                 <Building2 size={20} color="var(--primary)" />
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 15 }}>{c.name}</div>
+                <div className="company-name">{c.name}</div>
                 {c.tier === "top" && <Badge tone="info">Top Tier</Badge>}
               </div>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div className="company-rounds">
               {c.rounds.map((r) => (
-                <span key={r} style={{ fontSize: 11.5, color: "var(--muted)", background: "var(--bg)", padding: "3px 8px", borderRadius: 6 }}>
+                <span key={r} className="company-round">
                   {r}
                 </span>
               ))}

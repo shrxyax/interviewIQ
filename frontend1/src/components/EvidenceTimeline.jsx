@@ -5,6 +5,7 @@ import { getSessionEvidence } from "../services/interviewContext";
 import Card from "./shared/Card";
 import Badge from "./shared/Badge";
 import ProgressBar from "./shared/ProgressBar";
+import "./EvidenceTimeline.css";
 
 const STATES = ["absent", "memorised", "misconceived", "robust"];
 const STATE_COLOR = { robust: "var(--success)", memorised: "var(--warning)", misconceived: "var(--danger)", absent: "var(--muted)" };
@@ -23,12 +24,12 @@ function BeliefBars({ belief }) {
   if (!belief) return null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 10 }}>
+    <div className="belief-bars evidence-belief">
       {STATES.map((s, i) => (
-        <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 76, fontSize: 11, color: "var(--muted)", textTransform: "capitalize" }}>{s}</span>
+        <div key={s} className="belief-row">
+          <span className="belief-label evidence-state">{s}</span>
           <ProgressBar value={(belief[i] || 0) * 100} max={100} height={6} color={STATE_COLOR[s]} />
-          <span style={{ width: 34, fontSize: 11, color: "var(--muted)", textAlign: "right" }}>
+          <span className="belief-pct">
             {Math.round((belief[i] || 0) * 100)}%
           </span>
         </div>
@@ -43,53 +44,48 @@ function EvidenceItem({ item }) {
 
   return (
     <Card style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "var(--card-hover)",
-            }}
-          >
+      <div className="row-between" style={{ flexWrap: "wrap", gap: 10 }}>
+        <div className="row" style={{ gap: 10 }}>
+          <div className="evidence-icon">
             <Icon size={16} />
           </div>
 
           <div>
-            <div style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>Turn {item.seq}</div>
+            <div className="evidence-turn">Turn {item.seq}</div>
             <Badge tone={meta.tone}>{meta.label}</Badge>
           </div>
         </div>
 
         {item.score !== undefined && item.score !== null && (
-          <div style={{ fontSize: 13, fontWeight: 700 }}>{item.score}/10</div>
+          <div className="evidence-score">{item.score}/10</div>
         )}
 
         {item.outcome && <Badge tone="info">{item.outcome.replace(/_/g, " ")}</Badge>}
       </div>
 
-      <p style={{ marginTop: 10, fontSize: 13.5, lineHeight: 1.5 }}>{item.description}</p>
+      <p className="evidence-description">{item.description}</p>
 
       {item.source === "mkt" && (
-        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 2 }}>Belief before</div>
+        <div className="evidence-beliefs">
+          <div>
+            <div className="metric-label">Belief before</div>
             <BeliefBars belief={item.belief_before} />
           </div>
 
-          <div style={{ flex: 1, minWidth: 180 }}>
-            <div style={{ fontSize: 11, color: "var(--muted)", marginBottom: 2 }}>Belief after</div>
+          <div>
+            <div className="metric-label">Belief after</div>
             <BeliefBars belief={item.belief_after} />
           </div>
         </div>
       )}
 
       {item.source === "comms" && item.metrics && (
-        <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 8 }}>
+        <div className="evidence-metrics">
           {Object.entries(item.metrics)
             .filter(([k]) => k !== "session_id" && k !== "seq")
             .map(([k, v]) => (
-              <div key={k} style={{ fontSize: 11.5, color: "var(--muted)" }}>
-                <strong style={{ color: "var(--text)" }}>{typeof v === "number" ? Math.round(v * 100) / 100 : String(v)}</strong>{" "}
+              <div key={k} className="evidence-metric">
+                <strong className="text-strong">{typeof v === "number" ? Math.round(v * 100) / 100 : String(v)}</strong>{" "}
                 {k.replace(/_/g, " ")}
               </div>
             ))}
@@ -127,19 +123,19 @@ export default function EvidenceTimeline({ sessionId }) {
   }, [sessionId]);
 
   if (state.loading) {
-    return <p style={{ color: "var(--muted)", padding: "20px 0" }}>Loading evidence trail…</p>;
+    return <p className="evidence-status muted">Loading evidence trail…</p>;
   }
 
   if (state.error) {
-    return <p style={{ color: "var(--danger)", padding: "20px 0" }}>{state.error}</p>;
+    return <p className="evidence-status text-danger">{state.error}</p>;
   }
 
   if (state.items.length === 0) {
-    return <p style={{ color: "var(--muted)", padding: "20px 0" }}>No evidence was recorded for this session.</p>;
+    return <p className="evidence-status muted">No evidence was recorded for this session.</p>;
   }
 
   return (
-    <div style={{ padding: "4px 0 20px" }}>
+    <div className="evidence-timeline">
       <p className="report-section-note" style={{ marginBottom: 16 }}>
         The raw signal trail behind this session's evaluation — every turn score, knowledge
         probe and belief update, and communication/emotion sample, in the order it was recorded.

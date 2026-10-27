@@ -162,7 +162,7 @@ def _get_version(db: Session, user: User, version_id: int) -> tuple[DesignVersio
 # Analysis
 # --------------------------------------------------------------------------
 
-def _analyze_graph(graph_json: dict, requirements: dict, client_id: str = "client", strict: bool = True) -> dict:
+def analyze_graph(graph_json: dict, requirements: dict, client_id: str = "client", strict: bool = True) -> dict:
     try:
         graph = compile_graph(graph_json, strict=strict)
     except DesignError as exc:
@@ -233,7 +233,7 @@ def analyze(db: Session, user: User, version_id: int, requirements: dict | None,
         except ScenarioError as exc:
             raise WhiteboardError(str(exc))
 
-    result = _analyze_graph(graph_json, reqs, strict=strict)
+    result = analyze_graph(graph_json, reqs, strict=strict)
     findings = result["findings"]
 
     run = AnalysisRun(
@@ -326,8 +326,11 @@ def run_scenario_suite(db: Session, user: User, version_id: int) -> dict:
     """
 
     version, session = _get_version(db, user, version_id)
-    reqs = session.requirements
-    graph_json = version.graph
+    return resilience_suite(version.graph, session.requirements)
+
+
+def resilience_suite(graph_json: dict, reqs: dict) -> dict:
+    """run_scenario_suite for a design graph that isn't a saved version."""
 
     try:
         graph = compile_graph(graph_json)
@@ -352,9 +355,9 @@ def run_scenario_suite(db: Session, user: User, version_id: int) -> dict:
         try:
             if scenario["type"] in GRAPH_SCENARIOS:
                 mutated = apply_graph_scenario(graph_json, scenario)
-                r = _analyze_graph(mutated, reqs, strict=False)
+                r = analyze_graph(mutated, reqs, strict=False)
             else:
-                r = _analyze_graph(graph_json, apply_requirements_scenario(reqs, scenario))
+                r = analyze_graph(graph_json, apply_requirements_scenario(reqs, scenario))
         except (WhiteboardError, DesignError, ScenarioError, KeyError) as exc:
             results.append({"scenario": scenario, "survived": False, "error": str(exc)})
             continue
@@ -444,7 +447,7 @@ def get_report(db: Session, user: User, session_id: str) -> dict:
     versions = db.query(DesignVersion).filter_by(session_id=session.id).order_by(DesignVersion.version_no).all()
     latest = versions[-1]
 
-    analysis = _analyze_graph(latest.graph, session.requirements)
+    analysis = analyze_graph(latest.graph, session.requirements)
     resilience = run_scenario_suite(db, user, latest.id)
 
     try:

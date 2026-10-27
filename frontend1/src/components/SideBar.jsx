@@ -14,6 +14,7 @@ import {
   Calculator,
   Sparkles,
   RefreshCw,
+  X,
 } from "lucide-react";
 import "./SideBar.css";
 import { getUsername, isTransientGuest, logout } from "../services/auth";
@@ -47,23 +48,7 @@ const NAV_GROUPS = [
   },
 ];
 
-function linkStyle({ isActive }) {
-  return {
-    display: "flex",
-    alignItems: "center",
-    gap: 10,
-    padding: "9px 10px",
-    borderRadius: 10,
-    fontSize: 13.5,
-    fontWeight: isActive ? 600 : 500,
-    color: isActive ? "var(--text)" : "var(--muted)",
-    background: isActive ? "var(--primary-soft)" : "transparent",
-    textDecoration: "none",
-    transition: "background 0.2s ease, color 0.2s ease",
-  };
-}
-
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose }) {
   const navigate = useNavigate();
   const username = getUsername();
   const initial = username.replace(/^guest_/, "").charAt(0).toUpperCase() || "G";
@@ -73,12 +58,22 @@ export default function Sidebar() {
     e.preventDefault();
     e.stopPropagation();
     logout();
-    navigate("/sign-in");
+    // Full reload so ensureIdentity() issues a fresh guest session and
+    // all cached per-user state is dropped.
+    window.location.assign("/sign-in");
   };
 
   return (
-    <aside className="sidebar">
-      <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+    <>
+    <button
+      type="button"
+      className={`sidebar-backdrop ${open ? "open" : ""}`}
+      aria-label="Close menu"
+      tabIndex={open ? 0 : -1}
+      onClick={onClose}
+    />
+    <aside className={`sidebar ${open ? "open" : ""}`} id="app-sidebar">
+      <div className="sidebar-scroll">
         <div className="logo">
           <div className="logo-brand">
             <div className="logo-mark">
@@ -86,7 +81,12 @@ export default function Sidebar() {
             </div>
             <h2>InterviewIQ</h2>
           </div>
-          <ThemeToggle />
+          <div className="row" style={{ gap: 6 }}>
+            <ThemeToggle />
+            <button type="button" className="theme-toggle sidebar-close" aria-label="Close menu" onClick={onClose}>
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         <button className="new-chat" onClick={() => navigate("/", { state: { action: "new" } })}>
@@ -105,13 +105,12 @@ export default function Sidebar() {
         {NAV_GROUPS.map((group) => (
           <div className="nav-group" key={group.label}>
             <h4>{group.label}</h4>
-            <nav style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <nav className="nav-list">
               {group.items.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
                   end={item.end}
-                  style={linkStyle}
                   className={({ isActive }) => (isActive ? "active-link" : "")}
                 >
                   <item.icon size={16} />
@@ -139,7 +138,7 @@ export default function Sidebar() {
             aria-label="Sign in"
             onClick={() => navigate("/sign-in")}
           >
-            <LogOut size={15} style={{ transform: "scaleX(-1)" }} />
+            <LogOut size={15} className="icon-flip" />
           </button>
         ) : (
           <button
@@ -153,5 +152,6 @@ export default function Sidebar() {
         )}
       </div>
     </aside>
+    </>
   );
 }

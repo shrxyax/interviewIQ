@@ -7,6 +7,9 @@ export const setProblemStatus = (problemId, status) =>
 
 export const getCoreCs = () => api.get("/sheets/core-cs").then((r) => r.data);
 
+export const getCoreCsTopic = (noteId) =>
+  api.get(`/sheets/core-cs/notes/${noteId}`).then((r) => r.data);
+
 export const getCompanies = () => api.get("/companies").then((r) => r.data);
 
 export const getCompanyReadiness = (companyId) =>

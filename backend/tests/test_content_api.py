@@ -34,10 +34,33 @@ def test_dsa_sheet_is_seeded_with_progress(client):
     assert sheet2["solved"] == 1
 
 
-def test_core_cs_sheet_has_five_topics(client):
+def test_core_cs_sheet_has_five_subjects_with_full_topic_lists(client):
     sheet = client.get("/sheets/core-cs").json()
-    assert len(sheet["topics"]) == 5
-    assert all(len(t["notes"]) >= 3 for t in sheet["topics"])
+    assert [s["id"] for s in sheet["topics"]] == [
+        "core_cs.os", "core_cs.dbms", "core_cs.cn", "core_cs.oop", "core_cs.coa",
+    ]
+    assert all(len(s["notes"]) >= 12 for s in sheet["topics"])
+
+    # The list carries summaries, not full bodies.
+    first = sheet["topics"][0]["notes"][0]
+    assert first["summary"] and "body_markdown" not in first
+
+
+def test_core_cs_note_detail_and_navigation(client):
+    sheet = client.get("/sheets/core-cs").json()
+    notes = sheet["topics"][1]["notes"]
+
+    middle = client.get(f"/sheets/core-cs/notes/{notes[1]['id']}").json()
+    assert middle["subject"]["id"] == "core_cs.dbms"
+    assert len(middle["body_markdown"]) > 500
+    assert middle["prev"]["id"] == notes[0]["id"]
+    assert middle["next"]["id"] == notes[2]["id"]
+    assert middle["position"] == 2 and middle["total"] == len(notes)
+
+    first = client.get(f"/sheets/core-cs/notes/{notes[0]['id']}").json()
+    assert first["prev"] is None
+
+    assert client.get("/sheets/core-cs/notes/core_cs.nope.n01").status_code == 404
 
 
 def test_companies_and_readiness(client):

@@ -6,6 +6,7 @@ import { Play, Send, ChevronLeft, CheckCircle2, XCircle, Clock, ShieldAlert } fr
 import { listProblems, getProblem, runSamples, submit, listSubmissions } from "../services/coding";
 import Badge from "../components/shared/Badge";
 import Card from "../components/shared/Card";
+import "./CodingPage.css";
 
 const VERDICT_META = {
   AC: { label: "Accepted", color: "var(--success)", icon: CheckCircle2 },
@@ -25,6 +26,7 @@ function ProblemList({ onSelect }) {
   if (!problems) return <p className="spinner-text">Loading problems...</p>;
 
   return (
+    <div className="table-scroll">
     <table className="data-table">
       <thead>
         <tr>
@@ -34,13 +36,20 @@ function ProblemList({ onSelect }) {
       </thead>
       <tbody>
         {problems.map((p) => (
-          <tr key={p.id} onClick={() => onSelect(p.id)} style={{ cursor: "pointer" }}>
-            <td style={{ fontWeight: 500 }}>{p.title}</td>
+          <tr
+            key={p.id}
+            className="clickable-row"
+            tabIndex={0}
+            onClick={() => onSelect(p.id)}
+            onKeyDown={(e) => e.key === "Enter" && onSelect(p.id)}
+          >
+            <td className="code-problem-title">{p.title}</td>
             <td><Badge difficulty={p.difficulty}>{p.difficulty}</Badge></td>
           </tr>
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -86,38 +95,38 @@ function ProblemWorkspace({ problemId, onBack }) {
 
   return (
     <div>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", display: "flex", alignItems: "center", gap: 6, marginBottom: 16, fontSize: 13 }}>
+      <button onClick={onBack} className="text-btn back-btn" style={{ marginBottom: 16 }}>
         <ChevronLeft size={16} /> All problems
       </button>
 
-      <div className="grid grid-2" style={{ alignItems: "start", gridTemplateColumns: "1fr 1.3fr" }}>
+      <div className="grid grid-code">
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <h2 style={{ fontSize: 20 }}>{problem.title}</h2>
+          <div className="row code-title-row">
+            <h2>{problem.title}</h2>
             <Badge difficulty={problem.difficulty}>{problem.difficulty}</Badge>
           </div>
           <Card>
-            <p style={{ fontSize: 14, lineHeight: 1.7, color: "var(--muted)", marginBottom: 14 }}>{problem.statement}</p>
-            <div className="mono" style={{ fontSize: 12.5, color: "var(--text)", marginBottom: 14 }}>{problem.signature}</div>
+            <p className="code-statement">{problem.statement}</p>
+            <div className="mono code-signature">{problem.signature}</div>
 
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>Sample tests</div>
+            <div className="section-label">Sample tests</div>
             {problem.sample_tests.map((t, i) => (
-              <div key={i} className="mono" style={{ fontSize: 12, background: "var(--bg)", borderRadius: 8, padding: 10, marginBottom: 8 }}>
+              <div key={i} className="mono code-sample">
                 <div>args = {JSON.stringify(t.args)}</div>
-                <div style={{ color: "var(--muted)" }}>expected = {JSON.stringify(t.expected)}</div>
+                <div className="muted">expected = {JSON.stringify(t.expected)}</div>
               </div>
             ))}
           </Card>
 
           {submissions.length > 0 && (
-            <Card style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 10 }}>Your submissions</div>
+            <Card className="code-card">
+              <div className="section-label">Your submissions</div>
               {submissions.map((s) => {
                 const meta = VERDICT_META[s.verdict] || {};
                 return (
-                  <div key={s.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
-                    <span style={{ color: meta.color, fontWeight: 600 }}>{meta.label}</span>
-                    <span style={{ color: "var(--muted)" }}>{s.passed}/{s.total} tests · {s.runtime_ms.toFixed(0)}ms</span>
+                  <div key={s.id} className="list-row">
+                    <span className="code-verdict" style={{ color: meta.color }}>{meta.label}</span>
+                    <span className="muted">{s.passed}/{s.total} tests · {s.runtime_ms.toFixed(0)}ms</span>
                   </div>
                 );
               })}
@@ -126,7 +135,7 @@ function ProblemWorkspace({ problemId, onBack }) {
         </div>
 
         <div>
-          <div style={{ border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
+          <div className="code-editor">
             <Editor
               height="420px"
               language="python"
@@ -137,48 +146,48 @@ function ProblemWorkspace({ problemId, onBack }) {
             />
           </div>
 
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
+          <div className="code-actions">
             <button
               disabled={running}
               onClick={handleRun}
-              style={{ flex: 1, background: "var(--card)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: 10, padding: "11px 0", fontWeight: 600, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              className="btn btn-secondary"
             >
               <Play size={14} /> Run sample tests
             </button>
             <button
               disabled={running}
               onClick={handleSubmit}
-              style={{ flex: 1, background: "var(--primary)", border: "none", color: "white", borderRadius: 10, padding: "11px 0", fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              className="btn btn-primary"
             >
               <Send size={14} /> Submit
             </button>
           </div>
 
           {result && (
-            <Card style={{ marginTop: 14 }}>
+            <Card className="code-card">
               {result.kind === "submit" ? (
                 <>
                   {(() => {
                     const meta = VERDICT_META[result.verdict] || {};
                     const Icon = meta.icon || CheckCircle2;
                     return (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, color: meta.color, fontWeight: 700 }}>
+                      <div className="row code-result-title" style={{ color: meta.color }}>
                         <Icon size={18} /> {meta.label} &middot; {result.passed}/{result.total} tests passed
                       </div>
                     );
                   })()}
                 </>
               ) : (
-                <div style={{ fontWeight: 700, marginBottom: 10 }}>{result.passed}/{result.total} sample tests passed</div>
+                <div className="code-result-title">{result.passed}/{result.total} sample tests passed</div>
               )}
               {(result.results || result.visible_results)?.map((r, i) => (
-                <div key={i} style={{ fontSize: 12.5, display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
-                  <span style={{ color: r.status === "ok" ? "var(--success)" : "var(--danger)" }}>Test {i + 1}: {r.status}</span>
-                  {r.error && <span style={{ color: "var(--muted)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.error}</span>}
+                <div key={i} className="code-test-row">
+                  <span className={r.status === "ok" ? "text-success" : "text-danger"}>Test {i + 1}: {r.status}</span>
+                  {r.error && <span className="code-test-error" title={r.error}>{r.error}</span>}
                 </div>
               ))}
               {result.kind === "submit" && result.total > result.visible_results.length && (
-                <div style={{ fontSize: 11.5, color: "var(--muted)", marginTop: 6 }}>
+                <div className="code-hidden-note">
                   + {result.total - result.visible_results.length} hidden test(s), not shown individually.
                 </div>
               )}

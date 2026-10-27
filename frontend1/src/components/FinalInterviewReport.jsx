@@ -19,6 +19,14 @@ import {
 
 import EvidenceTimeline from "./EvidenceTimeline";
 
+const CODING_VERDICTS = {
+  AC: "Accepted",
+  WA: "Wrong answer",
+  RE: "Runtime error",
+  TLE: "Time limit exceeded",
+  UNSAFE: "Blocked",
+};
+
 export default function FinalInterviewReport({
   report,
   sessionId,
@@ -332,6 +340,12 @@ export default function FinalInterviewReport({
                         {item.mkt_probe_type.replace("mr_", "").replace("_", " ")}
                       </span>
                     )}
+                    {item.source === "coding" && (
+                      <span className="question-mkt-tag">coding</span>
+                    )}
+                    {item.source === "design" && (
+                      <span className="question-mkt-tag">design lab</span>
+                    )}
                   </span>
 
                   <div className="question-score">
@@ -339,9 +353,54 @@ export default function FinalInterviewReport({
                   </div>
                 </div>
 
-                <p className="feedback-question-text">
-                  {item.question}
-                </p>
+                {item.design ? (
+                  <p className="feedback-question-text">
+                    Design exercise: {item.design.prompt_title}
+                    <span
+                      className={`feedback-coding-verdict ${
+                        item.design.slo_satisfied ? "pass" : "fail"
+                      }`}
+                    >
+                      {item.design.slo_satisfied ? "Meets requirements" : "Misses requirements"} ·{" "}
+                      resilience {Math.round(item.design.resilience_pct ?? 0)}%
+                    </span>
+                    {item.design.components && (
+                      <span className="feedback-design-components">{item.design.components}</span>
+                    )}
+                  </p>
+                ) : item.coding ? (
+                  <p className="feedback-question-text">
+                    Coding round: {item.coding.problem_title}
+                    {item.coding.total ? (
+                      <span
+                        className={`feedback-coding-verdict ${
+                          item.coding.verdict === "AC" ? "pass" : "fail"
+                        }`}
+                      >
+                        {CODING_VERDICTS[item.coding.verdict] || item.coding.verdict} ·{" "}
+                        {item.coding.passed}/{item.coding.total} tests passed
+                      </span>
+                    ) : null}
+                  </p>
+                ) : (
+                  <p className="feedback-question-text">
+                    {item.question}
+                  </p>
+                )}
+
+                {item.answer && (
+                  item.source === "coding" ? (
+                    <div className="feedback-answer">
+                      <span>Your code</span>
+                      <pre className="feedback-code">{item.answer}</pre>
+                    </div>
+                  ) : (
+                    <p className="feedback-answer">
+                      <span>{item.source === "design" ? "Your explanation" : "Your answer"}</span>
+                      {item.answer}
+                    </p>
+                  )
+                )}
 
                 <p className="feedback-evaluation">
                   {item.evaluation}

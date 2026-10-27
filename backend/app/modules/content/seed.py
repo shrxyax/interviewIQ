@@ -34,11 +34,19 @@ def seed_dsa_sheet(db: Session) -> int:
     return n
 
 
+# One file per subject, in display order. Each holds the subject's id/name
+# and its topics (title + markdown body), also in display order.
+CORE_CS_SUBJECT_FILES = ["os.json", "dbms.json", "cn.json", "oop.json", "coa.json"]
+
+
 def seed_core_cs(db: Session) -> int:
-    data = json.loads((SEED_DIR / "core_cs_notes.json").read_text(encoding="utf-8"))
+    subjects = [
+        json.loads((SEED_DIR / "core_cs" / name).read_text(encoding="utf-8"))
+        for name in CORE_CS_SUBJECT_FILES
+    ]
     n = 0
 
-    for order, topic in enumerate(data["topics"]):
+    for order, topic in enumerate(subjects):
         row = db.get(SheetTopic, topic["id"]) or SheetTopic(id=topic["id"])
         row.sheet, row.name, row.order = "core_cs", topic["name"], order
         db.merge(row)

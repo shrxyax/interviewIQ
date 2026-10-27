@@ -7,6 +7,7 @@ import { getProfileBeliefs } from "../services/mkt";
 import { getUsername, getGeneratedPassword, isTransientGuest, logout, register } from "../services/auth";
 import Card from "../components/shared/Card";
 import ProgressBar from "../components/shared/ProgressBar";
+import "./ProfilePage.css";
 
 const STATE_COLOR = { robust: "var(--success)", memorised: "var(--warning)", misconceived: "var(--danger)", absent: "var(--muted)" };
 const STATE_LABEL = { robust: "Robust", memorised: "Memorised", misconceived: "Misconceived", absent: "Absent" };
@@ -57,22 +58,16 @@ export default function ProfilePage() {
         <p>Your candidate intelligence: practice progress and measured knowledge robustness.</p>
       </div>
 
-      <div className="grid grid-2" style={{ alignItems: "start" }}>
+      <div className="grid grid-2 profile-grid">
         <Card>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 48, height: 48, borderRadius: 999, background: "var(--primary-soft)",
-                  color: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 700, fontSize: 18,
-                }}
-              >
+          <div className="row-between" style={{ marginBottom: 16 }}>
+            <div className="row" style={{ gap: 12, minWidth: 0 }}>
+              <div className="profile-avatar">
                 {username.replace(/^guest_/, "").charAt(0).toUpperCase()}
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{username}</div>
-                <div style={{ color: "var(--muted)", fontSize: 13, display: "flex", alignItems: "center", gap: 6 }}>
+                <div className="profile-name">{username}</div>
+                <div className="note row" style={{ gap: 6 }}>
                   {isGuest ? "Temporary guest session" : (
                     <>
                       <ShieldCheck size={13} color="var(--success)" /> Signed in
@@ -85,11 +80,7 @@ export default function ProfilePage() {
             <button
               onClick={handleSignOut}
               title="Sign out"
-              style={{
-                display: "flex", alignItems: "center", gap: 6, flexShrink: 0,
-                background: "transparent", border: "1px solid var(--border)", borderRadius: 10,
-                padding: "8px 12px", color: "var(--muted)", fontSize: 12.5, fontWeight: 600,
-              }}
+              className="btn btn-sm profile-signout"
             >
               <LogOut size={13} /> Sign out
             </button>
@@ -97,23 +88,18 @@ export default function ProfilePage() {
 
           {isGuest && (
             <>
-              <p style={{ color: "var(--muted)", fontSize: 13, marginBottom: 12 }}>
+              <p className="note" style={{ marginBottom: 12 }}>
                 This browser was given a temporary account so your progress is saved. Set your own username and
                 password to keep access from another device.
               </p>
 
-              <div
-                style={{
-                  background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10,
-                  padding: "10px 12px", fontSize: 13, display: "flex", justifyContent: "space-between",
-                  alignItems: "center", marginBottom: 12, fontFamily: "monospace",
-                }}
-              >
+              <div className="profile-credentials mono">
                 <span>{username} / {generatedPassword}</span>
                 <button
                   onClick={() => navigator.clipboard?.writeText(`${username} / ${generatedPassword}`)}
-                  style={{ background: "none", border: "none", color: "var(--muted)", display: "flex" }}
+                  className="text-btn"
                   title="Copy credentials"
+                  aria-label="Copy credentials"
                 >
                   <Copy size={14} />
                 </button>
@@ -122,31 +108,31 @@ export default function ProfilePage() {
               {!claiming ? (
                 <button
                   onClick={() => setClaiming(true)}
-                  style={{
-                    width: "100%", padding: "10px 0", borderRadius: 10, border: "1px solid var(--border)",
-                    background: "transparent", color: "var(--text)", fontWeight: 600, fontSize: 13,
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  }}
+                  className="btn btn-secondary btn-block profile-claim"
                 >
                   <LogIn size={14} /> Set a permanent username &amp; password
                 </button>
               ) : (
-                <form onSubmit={handleClaim} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <form onSubmit={handleClaim} className="stack">
                   <input
                     placeholder="Username"
+                    aria-label="Username"
+                    autoComplete="username"
                     value={form.username}
                     onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-                    style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--text)", fontSize: 13 }}
+                    className="field profile-input"
                   />
                   <input
                     placeholder="Password"
                     type="password"
                     value={form.password}
                     onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                    style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", color: "var(--text)", fontSize: 13 }}
+                    aria-label="Password"
+                    autoComplete="new-password"
+                    className="field profile-input"
                   />
-                  {claimError && <span style={{ color: "var(--danger)", fontSize: 12 }}>{claimError}</span>}
-                  <button type="submit" style={{ background: "var(--primary)", color: "white", border: "none", borderRadius: 8, padding: "9px 0", fontWeight: 600, fontSize: 13 }}>
+                  {claimError && <span className="error-text" style={{ fontSize: 12 }}>{claimError}</span>}
+                  <button type="submit" className="btn btn-primary btn-block profile-save">
                     Save
                   </button>
                 </form>
@@ -156,10 +142,10 @@ export default function ProfilePage() {
         </Card>
 
         <Card>
-          <div style={{ color: "var(--muted)", fontSize: 13, marginBottom: 8 }}>DSA Sheet Progress</div>
+          <div className="note" style={{ marginBottom: 8 }}>DSA Sheet Progress</div>
           {sheet ? (
             <>
-              <div style={{ fontSize: 26, fontWeight: 700, marginBottom: 10 }}>{sheet.solved} / {sheet.total}</div>
+              <div className="stat-value" style={{ marginTop: 0, marginBottom: 10 }}>{sheet.solved} / {sheet.total}</div>
               <ProgressBar value={sheet.solved} max={sheet.total} />
             </>
           ) : (
@@ -167,20 +153,21 @@ export default function ProfilePage() {
           )}
           <button
             onClick={() => navigate("/dsa-sheet")}
-            style={{ marginTop: 14, background: "none", border: "none", color: "var(--primary)", fontSize: 13, fontWeight: 600, padding: 0 }}
+            className="link-btn"
+            style={{ marginTop: 14, fontSize: 13 }}
           >
             Go to sheet &rarr;
           </button>
         </Card>
       </div>
 
-      <h2 style={{ fontSize: 18, margin: "32px 0 14px" }}>Knowledge Robustness</h2>
+      <h2 className="section-title profile-section-title">Knowledge Robustness</h2>
 
       {probed.length === 0 ? (
         <Card>
-          <p style={{ color: "var(--muted)", fontSize: 14 }}>
+          <p className="muted" style={{ fontSize: 14 }}>
             You haven't been probed on any concepts yet.{" "}
-            <button onClick={() => navigate("/mkt")} style={{ background: "none", border: "none", color: "var(--primary)", fontWeight: 600, padding: 0 }}>
+            <button onClick={() => navigate("/mkt")} className="link-btn">
               Start a Metamorphic Knowledge Testing session &rarr;
             </button>
           </p>
@@ -189,23 +176,23 @@ export default function ProfilePage() {
         <>
           {meanRobustness !== null && (
             <Card style={{ marginBottom: 16 }}>
-              <div style={{ color: "var(--muted)", fontSize: 13, marginBottom: 6 }}>Mean Robustness Index</div>
-              <div style={{ fontSize: 26, fontWeight: 700 }}>{meanRobustness}%</div>
+              <div className="note" style={{ marginBottom: 6 }}>Mean Robustness Index</div>
+              <div className="stat-value" style={{ marginTop: 0 }}>{meanRobustness}%</div>
             </Card>
           )}
 
           <div className="grid grid-3">
             {probed.map((c) => (
               <Card key={c.id}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: STATE_COLOR[c.most_likely] }}>
+                <div className="concept-head">
+                  <span className="concept-name">{c.name}</span>
+                  <span className="concept-state" style={{ color: STATE_COLOR[c.most_likely] }}>
                     {STATE_LABEL[c.most_likely]}
                   </span>
                 </div>
                 {["absent", "memorised", "misconceived", "robust"].map((s) => (
-                  <div key={s} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <span style={{ width: 70, fontSize: 10.5, color: "var(--muted)" }}>{STATE_LABEL[s]}</span>
+                  <div key={s} className="belief-row" style={{ marginBottom: 4 }}>
+                    <span className="belief-label">{STATE_LABEL[s]}</span>
                     <ProgressBar value={c.belief[s] * 100} max={100} height={5} color={STATE_COLOR[s]} />
                   </div>
                 ))}

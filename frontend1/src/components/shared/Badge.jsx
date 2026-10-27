@@ -1,10 +1,11 @@
+// Each tone maps to a .badge-<tone> class in App.css.
 const TONE_VARS = {
-  success: ["--success", "--success-soft"],
-  warning: ["--warning", "--warning-soft"],
-  danger: ["--danger", "--danger-soft"],
-  info: ["--info", "--info-soft"],
-  primary: ["--primary", "--primary-soft"],
-  muted: ["--muted", null],
+  success: true,
+  warning: true,
+  danger: true,
+  info: true,
+  primary: true,
+  muted: true,
 };
 
 function toneFor(difficulty) {
@@ -15,26 +16,12 @@ function toneFor(difficulty) {
   return "muted";
 }
 
-export default function Badge({ children, tone, difficulty, style }) {
+export default function Badge({ children, tone, difficulty, style, className = "" }) {
   const resolvedTone = tone || toneFor(difficulty);
-  const [colorVar, bgVar] = TONE_VARS[resolvedTone] || TONE_VARS.muted;
+  const known = resolvedTone in TONE_VARS ? resolvedTone : "muted";
 
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "3px 10px",
-        borderRadius: 999,
-        fontSize: 12,
-        fontWeight: 600,
-        color: `var(${colorVar})`,
-        background: bgVar ? `var(${bgVar})` : "var(--card-hover)",
-        border: `1px solid ${bgVar ? `var(${bgVar})` : "var(--border)"}`,
-        whiteSpace: "nowrap",
-        ...style,
-      }}
-    >
+    <span className={`badge badge-${known} ${className}`.trim()} style={style}>
       {children}
     </span>
   );

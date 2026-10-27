@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -133,3 +133,52 @@ class InterviewTurn(Base):
     # if the camera was unavailable/denied).
     comm_metrics: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     emotion_metrics: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+
+
+class InterviewCodingRound(Base):
+    """
+    The coding problem asked in an interview turn (InterviewTurn.source ==
+    "coding"): the candidate's latest code and its test results. A separate
+    table, not columns on InterviewTurn, so existing databases pick it up
+    through create_all without a migration.
+    """
+
+    __tablename__ = "interview_coding_rounds"
+
+    turn_id: Mapped[int] = mapped_column(ForeignKey("interview_turns.id"), primary_key=True)
+    problem_id: Mapped[str] = mapped_column(ForeignKey("coding_problems.id"))
+
+    code: Mapped[str | None] = mapped_column(Text, nullable=True)
+    run_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Set on submit (after all tests ran).
+    verdict: Mapped[str | None] = mapped_column(String(16), nullable=True)  # AC | WA | RE | TLE | UNSAFE
+    passed: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Per-test detail for the visible tests only.
+    results: Mapped[list | None] = mapped_column(JSON, nullable=True)
+
+
+class InterviewDesignRound(Base):
+    """
+    The system-design lab question asked in an interview turn
+    (InterviewTurn.source == "design"): the candidate's latest design graph
+    and, once submitted, the engine's verdict on it. Like
+    InterviewCodingRound, a separate table so create_all picks it up.
+    """
+
+    __tablename__ = "interview_design_rounds"
+
+    turn_id: Mapped[int] = mapped_column(ForeignKey("interview_turns.id"), primary_key=True)
+    prompt_id: Mapped[str] = mapped_column(ForeignKey("design_prompts.id"))
+
+    graph: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    analyze_count: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Set on submit.
+    explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
+    slo_satisfied: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    resilience_pct: Mapped[float | None] = mapped_column(Float, nullable=True)
+    summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    findings: Mapped[list | None] = mapped_column(JSON, nullable=True)
+

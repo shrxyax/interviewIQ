@@ -6,6 +6,7 @@ import { getDsaSheet, setProblemStatus } from "../services/content";
 import Badge from "../components/shared/Badge";
 import Card from "../components/shared/Card";
 import ProgressBar from "../components/shared/ProgressBar";
+import "./DsaSheetPage.css";
 
 const STATUS_CYCLE = ["unsolved", "solved", "revisit"];
 
@@ -61,9 +62,9 @@ export default function DsaSheetPage() {
       </div>
 
       <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>
-          <span style={{ color: "var(--muted)", fontSize: 13 }}>Your Progress</span>
-          <span style={{ fontSize: 22, fontWeight: 700 }}>
+        <div className="row-between" style={{ alignItems: "baseline", marginBottom: 10 }}>
+          <span className="note">Your Progress</span>
+          <span className="dsa-progress-count">
             {sheet.solved} / {sheet.total}
           </span>
         </div>
@@ -74,13 +75,12 @@ export default function DsaSheetPage() {
         placeholder="Search problems or patterns..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        style={{
-          background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12,
-          padding: "12px 16px", color: "var(--text)", marginBottom: 16, fontSize: 14, outline: "none",
-        }}
+        className="field dsa-search"
+        aria-label="Search problems or patterns"
+        type="search"
       />
 
-      <div className="tab-row">
+      <div className="tab-row scroll">
         <button className={`tab-btn ${activeTopic === "all" ? "active" : ""}`} onClick={() => setActiveTopic("all")}>
           All
         </button>
@@ -95,12 +95,13 @@ export default function DsaSheetPage() {
         ))}
       </div>
 
+      <div className="table-scroll">
       <table className="data-table">
         <thead>
           <tr>
-            <th style={{ width: 36 }}></th>
+            <th className="dsa-status-col"><span className="sr-only">Status</span></th>
             <th>Problem</th>
-            <th>Topic</th>
+            <th className="dsa-topic-col">Topic</th>
             <th>Difficulty</th>
             <th>Pattern</th>
             <th></th>
@@ -110,20 +111,20 @@ export default function DsaSheetPage() {
           {problems.map((p) => (
             <tr key={p.id}>
               <td>
-                <button onClick={() => cycleStatus(p)} style={{ background: "none", border: "none", display: "flex", padding: 0 }} title="Click to cycle: unsolved -> solved -> revisit">
+                <button onClick={() => cycleStatus(p)} className="dsa-icon-btn" title="Click to cycle: unsolved -> solved -> revisit" aria-label={`Status: ${p.status || "unsolved"}. Click to change`}>
                   <StatusIcon status={p.status} />
                 </button>
               </td>
-              <td style={{ fontWeight: 500, textDecoration: p.status === "solved" ? "line-through" : "none", color: p.status === "solved" ? "var(--muted)" : "var(--text)" }}>
+              <td className={`dsa-title ${p.status === "solved" ? "solved" : ""}`}>
                 {p.title}
               </td>
-              <td style={{ color: "var(--muted)", fontSize: 13 }}>{p.topicName}</td>
+              <td className="dsa-meta dsa-topic-col">{p.topicName}</td>
               <td><Badge difficulty={p.difficulty}>{p.difficulty}</Badge></td>
-              <td style={{ color: "var(--muted)", fontSize: 13 }}>{p.pattern}</td>
+              <td className="dsa-meta">{p.pattern}</td>
               <td>
-                <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <div className="dsa-actions">
                   {p.leetcode_url && (
-                    <a href={p.leetcode_url} target="_blank" rel="noreferrer" title="Open on LeetCode" style={{ color: "var(--muted)", display: "flex" }}>
+                    <a href={p.leetcode_url} target="_blank" rel="noreferrer" title="Open on LeetCode" aria-label={`Open ${p.title} on LeetCode`} className="dsa-icon-btn muted">
                       <ExternalLink size={15} />
                     </a>
                   )}
@@ -131,7 +132,9 @@ export default function DsaSheetPage() {
                     <button
                       onClick={() => navigate("/mkt", { state: { conceptId: p.concept_id } })}
                       title="Test your robustness on this concept"
-                      style={{ background: "none", border: "none", color: "var(--primary)", display: "flex", padding: 0 }}
+                      aria-label="Test your robustness on this concept"
+                      className="dsa-icon-btn"
+                      style={{ color: "var(--primary)" }}
                     >
                       <BrainCircuit size={15} />
                     </button>
@@ -142,6 +145,7 @@ export default function DsaSheetPage() {
           ))}
         </tbody>
       </table>
+      </div>
 
       {problems.length === 0 && <p className="spinner-text">No problems match your search.</p>}
     </div>

@@ -1,0 +1,54 @@
+/* DSA practice sheet: progress, search, topic filter, problem table. */
+
+.dsa-progress-count{
+    font-size:22px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+}
+
+.dsa-search{
+    background:var(--card);
+    border-radius:12px;
+    padding:12px 16px;
+    margin-bottom:16px;
+    font-size:14px;
+    flex-shrink:0;
+}
+
+.dsa-status-col{
+    width:36px;
+}
+
+.dsa-icon-btn{
+    display:flex;
+    background:none;
+    border:none;
+    padding:0;
+}
+
+.dsa-title{
+    font-weight:500;
+}
+
+.dsa-title.solved{
+    text-decoration:line-through;
+    color:var(--muted);
+}
+
+.dsa-meta{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.dsa-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+
+/* On phones the topic column repeats the active filter, so drop it. */
+@media (max-width:700px){
+    .dsa-topic-col{
+        display:none;
+    }
+}

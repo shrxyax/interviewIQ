@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { FileText, Upload, Video } from "lucide-react";
 
@@ -6,8 +6,12 @@ import UploadBox from "../components/UploadBox";
 import ChatBox from "../components/ChatBox";
 import ChatInput from "../components/ChatInput";
 import InterviewSetup from "../components/InterviewSetup";
-import InterviewScreen from "../components/InterviewScreen";
-import FinalInterviewReport from "../components/FinalInterviewReport";
+import { LoadingState } from "../components/shared/LoadingState";
+
+// The live room (MediaPipe face detection) and the report (charts) are
+// heavy and only needed once an interview starts, so load them on demand.
+const InterviewScreen = lazy(() => import("../components/InterviewScreen"));
+const FinalInterviewReport = lazy(() => import("../components/FinalInterviewReport"));
 
 import api from "../services/api";
 import {
@@ -16,6 +20,7 @@ import {
   getInterviewSession,
   markListening,
   reportProctoringEvent,
+  endInterviewSession,
   startInterviewSession,
   submitInterviewAnswer as submitInterviewAnswerRequest,
 } from "../services/interviewContext";
@@ -23,6 +28,9 @@ import {
 // Survives a page refresh mid-interview: the backend session is the
 // source of truth, this just remembers which one to re-fetch.
 const ACTIVE_SESSION_KEY = "iq_active_interview_session_id";
+
+// Past chat messages sent with each question.
+const CHAT_HISTORY_MESSAGES = 8;
 
 export default function ChatInterviewPage() {
   const location = useLocation();
@@ -107,8 +115,8 @@ export default function ChatInterviewPage() {
         {
           role: "assistant",
           content:
-            "Document uploaded successfully.\n\nAsk me anything about your document.",
-          sources: [],
+            "Resume uploaded successfully.\n\nAsk me anything: about your resume, CS concepts, coding, " +
+            "system design, HR answers or how to prepare for an interview.",
         },
       ]);
     } catch (err) {
@@ -125,7 +133,6 @@ export default function ChatInterviewPage() {
         {
           role: "assistant",
           content: "Please upload a PDF before asking questions.",
-          sources: [],
         },
       ]);
       return;
@@ -140,14 +147,19 @@ export default function ChatInterviewPage() {
     setLoading(true);
 
     try {
+      // Recent conversation, so follow-ups ("explain that more") make sense.
+      const history = messages
+        .slice(-CHAT_HISTORY_MESSAGES)
+        .map(({ role, content }) => ({ role, content }));
+
       const res = await api.post("/chat", {
         question,
+        history,
       });
 
       const assistantMessage = {
         role: "assistant",
         content: res.data.answer,
-        sources: res.data.sources || [],
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -158,8 +170,11 @@ export default function ChatInterviewPage() {
         ...prev,
         {
           role: "assistant",
-          content: "Something went wrong.",
-          sources: [],
+          content:
+            err?.response?.data?.detail ||
+            (err?.response
+              ? "Something went wrong on the server. Please try again."
+              : "Couldn't reach the server. Check that the backend is running."),
         },
       ]);
     } finally {
@@ -178,7 +193,6 @@ export default function ChatInterviewPage() {
         role: "assistant",
         content:
           "Started a new conversation. Ask anything about your uploaded document.",
-        sources: [],
       },
     ]);
   };
@@ -198,6 +212,19 @@ export default function ChatInterviewPage() {
     localStorage.removeItem(ACTIVE_SESSION_KEY);
     setInterviewSession(null);
     setCurrentView("chat");
+  };
+
+  // Ending early still produces the report for what was answered.
+  const endInterview = async (answerInProgress, emotionSignal) => {
+    if (!interviewSession) return;
+
+    try {
+      const session = await endInterviewSession(interviewSession.session_id, answerInProgress, emotionSignal);
+      await applySessionUpdate(session);
+    } catch (err) {
+      console.error("Failed to end interview:", err);
+      throw err;
+    }
   };
 
   const handleInterviewTimeExpired = async () => {
@@ -325,7 +352,7 @@ export default function ChatInterviewPage() {
       {/* Normal Chat */}
       {uploaded && currentView === "chat" && (
         <>
-          <div className="chat-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className="chat-header row-between">
             <div>
               <h2>InterviewIQ</h2>
               <p>
@@ -333,28 +360,24 @@ export default function ChatInterviewPage() {
               </p>
             </div>
 
-            <div
-              style={{
-                display: "flex", alignItems: "center", gap: 10,
-                background: "var(--card)", border: "1px solid var(--border)",
-                borderRadius: 12, padding: "8px 14px", fontSize: 13, color: "var(--muted)",
-              }}
-            >
+            <div className="doc-chip">
               <FileText size={15} />
-              <span style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <span className="doc-chip-name">
                 {fileName || "document.pdf"}
               </span>
               <button
                 onClick={() => { setUploaded(false); setCurrentView("chat"); setInterviewSession(null); setInterviewReport(null); setReportSessionId(null); }}
                 title="Upload another PDF"
-                style={{ background: "transparent", border: "none", color: "var(--muted)", display: "flex", padding: 0 }}
+                className="doc-chip-btn"
+                aria-label="Upload another PDF"
               >
                 <Upload size={15} />
               </button>
               <button
                 onClick={openInterview}
                 title="Start AI interview on this resume"
-                style={{ background: "transparent", border: "none", color: "var(--primary)", display: "flex", padding: 0 }}
+                className="doc-chip-btn primary"
+                aria-label="Start AI interview on this resume"
               >
                 <Video size={15} />
               </button>
@@ -382,13 +405,14 @@ export default function ChatInterviewPage() {
           />
         )}
 
+      <Suspense fallback={<LoadingState />}>
       {/* Live Interview */}
       {uploaded &&
         currentView === "interview" &&
         interviewSession && (
           <InterviewScreen
             session={{ ...interviewSession, context: interviewContextInfo }}
-            onExit={exitInterview}
+            onEndInterview={endInterview}
             onReadyForAnswer={handleReadyForAnswer}
             onSubmitAnswer={handleSubmitInterviewAnswer}
             onTimeExpired={handleInterviewTimeExpired}
@@ -409,6 +433,7 @@ export default function ChatInterviewPage() {
           }}
         />
       )}
+      </Suspense>
 
     </main>
   );

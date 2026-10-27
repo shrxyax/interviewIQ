@@ -43,14 +43,6 @@ async def upload_pdf(
     # Step 2: Chunk pages
     chunks = chunk_pages(pages)
 
-    
-
-    texts = [chunk["text"] for chunk in chunks]
-
-    embeddings = generate_embeddings(texts)
-
-    stored = save_to_faiss(embeddings, chunks)
-
     resume = Resume(
         user_id=user.id,
         filename=file.filename,
@@ -58,6 +50,20 @@ async def upload_pdf(
         chunks=len(chunks),
     )
     db.add(resume)
+    db.flush()
+
+    # The FAISS index is shared by every upload; tag each chunk with its
+    # resume so searches stay within one candidate's resume.
+    for chunk in chunks:
+        chunk["resume_id"] = resume.id
+        chunk["user_id"] = user.id
+
+    texts = [chunk["text"] for chunk in chunks]
+
+    embeddings = generate_embeddings(texts)
+
+    stored = save_to_faiss(embeddings, chunks)
+
     db.commit()
 
     return {

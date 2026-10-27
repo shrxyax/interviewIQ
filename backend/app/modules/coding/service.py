@@ -30,7 +30,7 @@ def get_problem(db: Session, problem_id: str) -> dict:
     }
 
 
-def _run_tests(code: str, tests: list[dict]) -> dict:
+def run_tests(code: str, tests: list[dict]) -> dict:
     results = []
 
     for t in tests:
@@ -49,13 +49,13 @@ def run_samples(db: Session, problem_id: str, code: str) -> dict:
     if p is None:
         raise CodingError("Problem not found.")
 
-    return _run_tests(code, p.sample_tests)
+    return run_tests(code, p.sample_tests)
 
 
 _VERDICT_PRIORITY = ["unsafe", "timeout", "runtime_error", "wrong_answer", "ok"]
 
 
-def _overall_verdict(results: list[dict]) -> str:
+def overall_verdict(results: list[dict]) -> str:
     statuses = {r["status"] for r in results}
     for status in _VERDICT_PRIORITY:
         if status in statuses:
@@ -76,8 +76,8 @@ def submit(db: Session, user: User, problem_id: str, code: str) -> dict:
         raise CodingError("Problem not found.")
 
     all_tests = p.sample_tests + p.hidden_tests
-    run = _run_tests(code, all_tests)
-    verdict = _overall_verdict(run["results"])
+    run = run_tests(code, all_tests)
+    verdict = overall_verdict(run["results"])
     runtime = max((r["runtime_ms"] for r in run["results"]), default=0.0)
 
     submission = Submission(

@@ -1,0 +1,179 @@
+{
+ "catalog": [
+  {
+   "id": "client",
+   "label": "Client",
+   "role": "client",
+   "defaults": {
+    "mu": null,
+    "base_latency_ms": 0,
+    "availability": 1.0
+   },
+   "assumptions": "Traffic source. Not a served resource; never a bottleneck itself."
+  },
+  {
+   "id": "load_balancer",
+   "label": "Load Balancer",
+   "role": "edge",
+   "defaults": {
+    "mu": 50000,
+    "base_latency_ms": 0.5,
+    "availability": 0.9995
+   },
+   "assumptions": "L7 LB (e.g. nginx/ELB-class), simple round robin, negligible CPU cost per request."
+  },
+  {
+   "id": "api_service",
+   "label": "API Service",
+   "role": "compute",
+   "defaults": {
+    "mu": 800,
+    "base_latency_ms": 8,
+    "availability": 0.999
+   },
+   "assumptions": "Stateless app server, 4 vCPU, JSON over HTTP, simple business logic (no heavy computation)."
+  },
+  {
+   "id": "cache",
+   "label": "Cache (Redis-class)",
+   "role": "data",
+   "defaults": {
+    "mu": 50000,
+    "base_latency_ms": 0.5,
+    "availability": 0.999,
+    "hit_ratio": 0.8
+   },
+   "assumptions": "In-memory KV store, single node, small values (<10KB). hit_ratio defaults to 0.8."
+  },
+  {
+   "id": "sql_primary",
+   "label": "SQL Database (Primary)",
+   "role": "data",
+   "defaults": {
+    "mu": 5000,
+    "base_latency_ms": 4,
+    "availability": 0.999,
+    "read_ratio": 0.8
+   },
+   "assumptions": "Postgres-class, 8 vCPU, indexed point reads/writes. Full scans are far slower than this models."
+  },
+  {
+   "id": "read_replica",
+   "label": "SQL Read Replica",
+   "role": "data",
+   "defaults": {
+    "mu": 5000,
+    "base_latency_ms": 4,
+    "availability": 0.999
+   },
+   "assumptions": "Async replica of a sql_primary. Serves reads only; writes must route to the primary."
+  },
+  {
+   "id": "queue",
+   "label": "Message Queue",
+   "role": "queue",
+   "defaults": {
+    "mu": 20000,
+    "base_latency_ms": 1,
+    "availability": 0.999
+   },
+   "assumptions": "Kafka/SQS-class durable queue. Decouples producers from consumers (async edge)."
+  },
+  {
+   "id": "worker",
+   "label": "Background Worker",
+   "role": "compute",
+   "defaults": {
+    "mu": 200,
+    "base_latency_ms": 20,
+    "availability": 0.999
+   },
+   "assumptions": "Consumes from a queue; heavier per-task cost than a request/response API service."
+  }
+ ],
+ "graph": {
+  "nodes": [
+   {
+    "id": "client",
+    "type": "client",
+    "label": "Clients",
+    "params": {
+     "replicas": 1
+    }
+   },
+   {
+    "id": "lb",
+    "type": "load_balancer",
+    "label": "Load Balancer",
+    "params": {
+     "replicas": 1
+    }
+   },
+   {
+    "id": "api",
+    "type": "api_service",
+    "label": "Shortener API",
+    "params": {
+     "replicas": 2
+    }
+   },
+   {
+    "id": "cache",
+    "type": "cache",
+    "label": "Redirect Cache",
+    "params": {
+     "replicas": 1,
+     "hit_ratio": 0.85
+    }
+   },
+   {
+    "id": "db",
+    "type": "sql_primary",
+    "label": "URL Mapping DB",
+    "params": {
+     "replicas": 1
+    }
+   }
+  ],
+  "edges": [
+   {
+    "src": "client",
+    "dst": "lb",
+    "fraction": 1.0,
+    "kind": "sync"
+   },
+   {
+    "src": "lb",
+    "dst": "api",
+    "fraction": 1.0,
+    "kind": "sync"
+   },
+   {
+    "src": "api",
+    "dst": "cache",
+    "fraction": 1.0,
+    "kind": "sync"
+   },
+   {
+    "src": "cache",
+    "dst": "db",
+    "fraction": "miss",
+    "kind": "sync"
+   }
+  ]
+ },
+ "prompt": {
+  "id": "sd.basics.p01",
+  "title": "Design a URL Shortener",
+  "scenario": "Design a service that takes a long URL and returns a short code that redirects to it. Reads (redirects) vastly outnumber writes (new shortlinks). Start simple, then make it survive real load.",
+  "difficulty": "Easy",
+  "subtopic": "Fundamentals & Approach",
+  "requirements": {
+   "peak_rps": 20000,
+   "read_ratio": 0.95,
+   "p99_slo_ms": 150,
+   "availability_slo": 0.999,
+   "growth_per_month": 0.15
+  }
+ }
+}

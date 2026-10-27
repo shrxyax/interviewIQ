@@ -19,6 +19,10 @@ import {
   detectFace,
   getAffectSignal,
 } from "../services/faceDetection";
+import InterviewerFace from "./InterviewerFace";
+import { CodingProblemPanel, CodingWorkspace } from "./CodingRound";
+import { DesignProblemPanel, DesignWorkspace } from "./DesignRound";
+import { analyzeInterviewDesign, getQuestionAudio, runInterviewCode } from "../services/interviewContext";
 
 /*
  * This screen is a dumb renderer over the backend-owned interview state
@@ -36,6 +40,17 @@ const SPEECH_CHARS_PER_SEC = 15;
 const SPEECH_WATCHDOG_BUFFER_MS = 4000;
 const SPEECH_WATCHDOG_MIN_MS = 8000;
 const SPEECH_WATCHDOG_MAX_MS = 45000;
+// Rendering question audio on the backend takes a few seconds.
+const AUDIO_FETCH_ALLOWANCE_MS = 20000;
+
+function estimateSpeechMs(text) {
+  const estimatedMs = Math.ceil(text.length / SPEECH_CHARS_PER_SEC) * 1000;
+
+  return Math.min(
+    SPEECH_WATCHDOG_MAX_MS,
+    Math.max(SPEECH_WATCHDOG_MIN_MS, estimatedMs + SPEECH_WATCHDOG_BUFFER_MS)
+  );
+}
 
 // Averages this question's collected MediaPipe affect samples into one
 // small object, or null if the camera was unavailable/denied/no face was
@@ -56,9 +71,31 @@ const averageAffectSamples = (samples) => {
   return averaged;
 };
 
+// Prefers a natural-sounding English voice. Voices can load late (Chrome
+// fills the list asynchronously); if none are ready the browser default
+// is used.
+function pickEnglishVoice(synth) {
+  const voices = synth.getVoices?.() || [];
+  const english = voices.filter((v) => /^en(-|_|$)/i.test(v.lang));
+
+  return (
+    english.find((v) => /natural|google|samantha|aria|jenny/i.test(v.name)) ||
+    english.find((v) => v.lang?.toLowerCase().replace("_", "-") === "en-us") ||
+    english[0] ||
+    null
+  );
+}
+
+// Joins two pieces of answer text with a single space between them.
+function joinText(before, after) {
+  if (!before) return after;
+  if (!after) return before;
+  return `${before.trimEnd()} ${after.trimStart()}`;
+}
+
 export default function InterviewScreen({
   session,
-  onExit,
+  onEndInterview,
   onReadyForAnswer,
   onSubmitAnswer,
   onTimeExpired,
@@ -70,12 +107,22 @@ export default function InterviewScreen({
   const timerRef = useRef(null);
   const syncIntervalRef = useRef(null);
   const recognitionRef = useRef(null);
+  // True from "Start Answer" until the candidate (or submit / exit / timeout /
+  // tab-hide) stops it. The browser ends recognition on its own after pauses
+  // or ~60s; while this is true we restart it instead of treating that as Stop.
+  const wantListeningRef = useRef(false);
+  // Answer text that existed before the current recognition run, so each
+  // run (and each automatic restart) appends instead of overwriting.
+  const committedAnswerRef = useRef("");
+  const answerRef = useRef("");
   const lastSpokenQuestionRef = useRef(null);
 
   // Guards the in-flight speakQuestion call: only one of {watchdog timeout,
   // utterance onend/onerror, forced-by-tab-hide} may actually invoke onDone.
   const speechDoneRef = useRef(null);
   const speechWatchdogRef = useRef(null);
+  // The <audio> element currently reading the question, if any.
+  const audioRef = useRef(null);
 
   const faceDetectionIntervalRef = useRef(null);
   const faceDetectorRef = useRef(null);
@@ -87,6 +134,20 @@ export default function InterviewScreen({
 
   const [cameraAvailable, setCameraAvailable] = useState(false);
   const [answer, setAnswer] = useState("");
+
+  // Coding round: the question is a problem solved in an editor.
+  const coding = session.coding;
+  const [code, setCode] = useState(coding?.code ?? "");
+  const [runResult, setRunResult] = useState(null);
+  const [running, setRunning] = useState(false);
+
+  // Design-lab round: the question is an architecture edited on a canvas.
+  const design = session.design;
+  const [designGraph, setDesignGraph] = useState(design?.graph ?? null);
+  const [designExplanation, setDesignExplanation] = useState("");
+  const [ending, setEnding] = useState(false);
+  const [endError, setEndError] = useState("");
+  const endDialogRef = useRef(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [timeLeft, setTimeLeft] = useState(session.time_remaining_seconds ?? 0);
@@ -94,6 +155,9 @@ export default function InterviewScreen({
   // Voice states
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  // Set when the browser refuses or fails to read the question aloud, so the
+  // candidate sees why it's silent and can replay it with a click.
+  const [speechIssue, setSpeechIssue] = useState("");
   const [speechSupported, setSpeechSupported] =
     useState(true);
 
@@ -135,7 +199,7 @@ export default function InterviewScreen({
     } else {
       const recognition = new SpeechRecognition();
 
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "en-US";
 
@@ -145,18 +209,15 @@ export default function InterviewScreen({
       };
 
       recognition.onresult = (event) => {
+        // In continuous mode event.results holds everything heard in this
+        // run (final + in-progress), so rebuild from the start each time.
         let transcript = "";
 
-        for (
-          let i = event.resultIndex;
-          i < event.results.length;
-          i++
-        ) {
-          transcript +=
-            event.results[i][0].transcript;
+        for (let i = 0; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
         }
 
-        setAnswer(transcript);
+        setAnswer(joinText(committedAnswerRef.current, transcript));
       };
 
       recognition.onerror = (event) => {
@@ -165,17 +226,39 @@ export default function InterviewScreen({
           event.error
         );
 
-        if (event.error !== "aborted") {
-          setError(
-            "Voice recognition failed. You can type your answer instead."
-          );
+        // Silence and our own restarts are expected; onend restarts.
+        if (event.error === "no-speech" || event.error === "aborted") {
+          return;
         }
+
+        wantListeningRef.current = false;
+
+        setError(
+          event.error === "not-allowed" || event.error === "service-not-allowed"
+            ? "Microphone access was blocked. Allow it in the browser, or type your answer."
+            : "Voice recognition failed. You can type your answer instead."
+        );
 
         setIsListening(false);
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        if (!wantListeningRef.current) {
+          setIsListening(false);
+          return;
+        }
+
+        // The browser stopped by itself (pause or time limit): keep what was
+        // said so far and carry on listening.
+        committedAnswerRef.current = answerRef.current;
+
+        try {
+          recognition.start();
+        } catch (err) {
+          console.error("Could not restart speech recognition:", err);
+          wantListeningRef.current = false;
+          setIsListening(false);
+        }
       };
 
       recognitionRef.current = recognition;
@@ -191,18 +274,23 @@ export default function InterviewScreen({
         faceDetectionIntervalRef.current
       );
 
+      wantListeningRef.current = false;
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
 
-      window.speechSynthesis.cancel();
+      stopSpeech();
 
-      // Deliberately doesn't clear the speech watchdog or null speechDoneRef
-      // here: this effect's cleanup also runs on React's dev-mode StrictMode
-      // double-invoke (mount -> cleanup -> mount again) while the component
-      // is still alive, and an in-flight speakQuestion() call (owned by the
-      // other effect) must survive that round-trip intact.
+      // This cleanup also runs on React's dev-mode StrictMode double-invoke
+      // (mount -> cleanup -> mount again). The cancel() above silences the
+      // question, so forget that it was spoken: the remount's speaking
+      // effect then reads it again. The cancelled utterance's late onerror
+      // can't advance the interview because each speakQuestion call has its
+      // own token (see finishSpeaking).
+      lastSpokenQuestionRef.current = null;
     };
+    // Mount-only: camera, face detection and the timer start once per interview.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /*
@@ -220,11 +308,12 @@ export default function InterviewScreen({
         faceDetectionIntervalRef.current
       );
 
+      wantListeningRef.current = false;
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
 
-      window.speechSynthesis.cancel();
+      stopSpeech();
 
       clearTimeout(speechWatchdogRef.current);
       speechDoneRef.current = null;
@@ -257,8 +346,9 @@ export default function InterviewScreen({
       }
 
       if (!visible) {
-        window.speechSynthesis.cancel();
+        stopSpeech();
 
+        wantListeningRef.current = false;
         if (recognitionRef.current) {
           recognitionRef.current.stop();
         }
@@ -325,7 +415,7 @@ export default function InterviewScreen({
     lastSpokenQuestionRef.current = key;
     emotionSamplesRef.current = [];
 
-    if (speechSupported && "speechSynthesis" in window) {
+    if ("speechSynthesis" in window) {
       speakQuestion(session.question, onReadyForAnswer);
     } else {
       onReadyForAnswer();
@@ -456,8 +546,8 @@ export default function InterviewScreen({
    * first. Clears the watchdog and the "in-flight" marker so a late event
    * from a since-abandoned utterance can't double-fire onDone.
    */
-  const finishSpeaking = (onDone) => {
-    if (speechDoneRef.current !== onDone) {
+  const finishSpeaking = (token) => {
+    if (!token || speechDoneRef.current !== token) {
       return;
     }
 
@@ -470,7 +560,7 @@ export default function InterviewScreen({
 
     setIsSpeaking(false);
 
-    if (onDone) onDone();
+    if (token.onDone) token.onDone();
   };
 
   /*
@@ -480,28 +570,134 @@ export default function InterviewScreen({
    * while the queue is paused. A watchdog timeout guarantees onDone always
    * runs, so the candidate is never stuck on AI_SPEAKING.
    */
+  // Safety net: if neither "ended" nor "error" ever arrives (a real failure
+  // mode for browser speech after tab backgrounding), stop waiting and let
+  // the candidate answer anyway.
+  const armSpeechWatchdog = (token, ms) => {
+    if (speechWatchdogRef.current) {
+      clearTimeout(speechWatchdogRef.current);
+    }
+
+    speechWatchdogRef.current = setTimeout(() => {
+      if (speechDoneRef.current !== token) return;
+
+      console.warn(
+        "Speech watchdog fired: no end/error event within",
+        ms,
+        "ms - forcing the interview to advance."
+      );
+
+      stopSpeech();
+      finishSpeaking(token);
+    }, ms);
+  };
+
+  // Stops whatever is reading the question: server audio or browser speech.
+  const stopSpeech = () => {
+    const audio = audioRef.current;
+
+    if (audio) {
+      audioRef.current = null;
+      audio.onplaying = null;
+      audio.onended = null;
+      audio.onerror = null;
+      audio.onloadedmetadata = null;
+      audio.pause();
+      URL.revokeObjectURL(audio.src);
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+  };
+
+  /*
+   * Reads the question aloud. Prefers audio rendered by the backend (a normal
+   * audio file, so it plays wherever the tab can play sound); falls back to
+   * the browser's own speech if that's unavailable.
+   */
   const speakQuestion = (question, onDone) => {
-    if (
-      !question ||
-      !("speechSynthesis" in window)
-    ) {
+    if (!question) {
       if (onDone) onDone();
       return;
     }
 
-    // A previous utterance's watchdog is now moot; its onDone has either
-    // already run or is about to be superseded by this new call.
-    if (speechWatchdogRef.current) {
-      clearTimeout(speechWatchdogRef.current);
-      speechWatchdogRef.current = null;
+    // A fresh object per call, so events from an older (cancelled) attempt
+    // can never resolve this one.
+    const token = { onDone };
+    speechDoneRef.current = token;
+
+    stopSpeech();
+
+    // Allow time to fetch the audio on top of reading it.
+    armSpeechWatchdog(token, estimateSpeechMs(question) + AUDIO_FETCH_ALLOWANCE_MS);
+
+    getQuestionAudio(session.session_id)
+      .then((blob) => {
+        if (speechDoneRef.current !== token) return;
+
+        const audio = new Audio(URL.createObjectURL(blob));
+        audioRef.current = audio;
+
+        audio.onloadedmetadata = () => {
+          if (Number.isFinite(audio.duration)) {
+            armSpeechWatchdog(token, audio.duration * 1000 + SPEECH_WATCHDOG_BUFFER_MS);
+          }
+        };
+
+        audio.onplaying = () => {
+          if (speechDoneRef.current === token) {
+            setIsSpeaking(true);
+            setSpeechIssue("");
+          }
+        };
+
+        audio.onended = () => {
+          stopSpeech();
+          finishSpeaking(token);
+        };
+
+        audio.onerror = () => {
+          console.warn("Question audio could not be played; using browser speech.");
+          stopSpeech();
+          speakWithBrowser(question, token);
+        };
+
+        audio.play().catch((err) => {
+          if (speechDoneRef.current !== token) return;
+
+          if (err?.name === "NotAllowedError") {
+            setSpeechIssue("Your browser blocked the interviewer's voice. Click Replay question to hear it.");
+            stopSpeech();
+            finishSpeaking(token);
+            return;
+          }
+
+          stopSpeech();
+          speakWithBrowser(question, token);
+        });
+      })
+      .catch((err) => {
+        if (speechDoneRef.current !== token) return;
+        console.warn("Question audio unavailable; using browser speech.", err?.message);
+        speakWithBrowser(question, token);
+      });
+  };
+
+  const speakWithBrowser = (question, token) => {
+    if (!("speechSynthesis" in window)) {
+      finishSpeaking(token);
+      return;
     }
 
-    speechDoneRef.current = onDone;
+    const synth = window.speechSynthesis;
 
     // speechSynthesis can get stuck reporting speaking/pending true from a
-    // prior utterance; cancel() defensively before every speak() so the
-    // browser reliably fires events for this one.
-    window.speechSynthesis.cancel();
+    // prior utterance; cancel() defensively so the browser reliably fires
+    // events for this one. Chrome silently drops a speak() issued in the
+    // same tick as cancel(), so give it a moment first.
+    const needsReset = synth.speaking || synth.pending;
+    synth.cancel();
 
     const utterance =
       new SpeechSynthesisUtterance(question);
@@ -509,40 +705,91 @@ export default function InterviewScreen({
     utterance.rate = 0.95;
     utterance.pitch = 1;
     utterance.volume = 1;
+    utterance.lang = "en-US";
+
+    try {
+      const voice = pickEnglishVoice(synth);
+      if (voice) utterance.voice = voice;
+    } catch (err) {
+      // A bad voice must never stop the question being read; fall back to
+      // the browser default.
+      console.warn("Could not select a speech voice:", err);
+    }
 
     utterance.onstart = () => {
-      setIsSpeaking(true);
+      if (speechDoneRef.current === token) {
+        setIsSpeaking(true);
+        setSpeechIssue("");
+      }
     };
 
     utterance.onend = () => {
-      finishSpeaking(onDone);
+      finishSpeaking(token);
     };
 
-    utterance.onerror = () => {
-      finishSpeaking(onDone);
+    utterance.onerror = (event) => {
+      // "interrupted"/"canceled" are our own cancel() calls, not failures.
+      if (
+        speechDoneRef.current === token &&
+        event?.error &&
+        event.error !== "interrupted" &&
+        event.error !== "canceled"
+      ) {
+        console.warn("Interviewer speech failed:", event.error);
+        setSpeechIssue(
+          event.error === "not-allowed"
+            ? "Your browser blocked the interviewer's voice. Click Replay question to hear it."
+            : "The interviewer's voice couldn't play. Click Replay question to try again."
+        );
+      }
+
+      finishSpeaking(token);
     };
 
-    window.speechSynthesis.speak(
-      utterance
+    const speakNow = () => {
+      if (speechDoneRef.current !== token) return;
+      // Chrome can leave the queue paused after tab switches.
+      synth.resume();
+      synth.speak(utterance);
+    };
+
+    if (needsReset) {
+      setTimeout(speakNow, 80);
+    } else {
+      speakNow();
+    }
+
+    armSpeechWatchdog(token, estimateSpeechMs(question));
+  };
+
+  useEffect(() => {
+    answerRef.current = answer;
+  }, [answer]);
+
+  // Reads the current question again. A click always counts as a user
+  // gesture, so this also works when the browser blocked automatic speech.
+  const replayQuestion = () => {
+    if (!session?.question) return;
+
+    stopListening();
+    setSpeechIssue("");
+
+    // Still waiting to hand over to the candidate? Finish that handover once
+    // this replay ends; otherwise just read it again.
+    speakQuestion(
+      session.question,
+      session.state === "AI_SPEAKING" ? onReadyForAnswer : undefined
     );
+  };
 
-    const estimatedMs = Math.ceil(question.length / SPEECH_CHARS_PER_SEC) * 1000;
+  const stopListening = () => {
+    wantListeningRef.current = false;
 
-    const watchdogMs = Math.min(
-      SPEECH_WATCHDOG_MAX_MS,
-      Math.max(SPEECH_WATCHDOG_MIN_MS, estimatedMs + SPEECH_WATCHDOG_BUFFER_MS)
-    );
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
 
-    speechWatchdogRef.current = setTimeout(() => {
-      console.warn(
-        "speechSynthesis watchdog fired: neither onend nor onerror ran within",
-        watchdogMs,
-        "ms - forcing the interview to advance."
-      );
-
-      window.speechSynthesis.cancel();
-      finishSpeaking(onDone);
-    }, watchdogMs);
+    setIsListening(false);
   };
 
   /*
@@ -561,15 +808,17 @@ export default function InterviewScreen({
     }
 
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+      stopListening();
       return;
     }
 
-    window.speechSynthesis.cancel();
+    stopSpeech();
     setIsSpeaking(false);
 
     setError("");
+
+    wantListeningRef.current = true;
+    committedAnswerRef.current = answerRef.current;
 
     try {
       recognitionRef.current.start();
@@ -578,6 +827,7 @@ export default function InterviewScreen({
         "Could not start speech recognition:",
         err
       );
+      wantListeningRef.current = false;
     }
   };
 
@@ -602,12 +852,62 @@ export default function InterviewScreen({
 
   const canAnswer = session.state === "LISTENING";
 
+  // A new coding question starts from its saved draft (or the starter code).
+  const codingProblemId = coding?.problem.id;
+  useEffect(() => {
+    setCode(coding?.code ?? "");
+    setRunResult(null);
+    // Only when the question changes, not on every session sync.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.question_number, codingProblemId]);
+
+  // A new design exercise starts from its saved draft (or the starter).
+  const designPromptId = design?.prompt.id;
+  useEffect(() => {
+    setDesignGraph(design?.graph ?? null);
+    setDesignExplanation("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.question_number, designPromptId]);
+
+  // What the candidate is answering with: their code in the coding round,
+  // their design (+ explanation) in the design round, otherwise the
+  // spoken/typed answer.
+  const currentAnswer = coding
+    ? code
+    : design
+    ? JSON.stringify({ graph: designGraph, explanation: designExplanation })
+    : answer;
+  const hasCodeChanges = coding ? code.trim() !== coding.problem.starter_code.trim() : false;
+  // Partial work worth grading if the interview is ended mid-question.
+  const hasWorkInProgress = coding
+    ? hasCodeChanges
+    : design
+    ? Boolean(designExplanation.trim()) || JSON.stringify(designGraph) !== JSON.stringify(design.graph)
+    : Boolean(answer.trim());
+
+  const analyzeDesign = (graph) => analyzeInterviewDesign(session.session_id, graph);
+
+  const handleRun = async () => {
+    if (!coding || running || !canAnswer) return;
+
+    setRunning(true);
+    setError("");
+
+    try {
+      setRunResult(await runInterviewCode(session.session_id, code));
+    } catch (err) {
+      setError(err?.response?.data?.detail || "Couldn't run your code. Please try again.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
   /*
    * Submit candidate answer
    */
   const handleSubmit = async () => {
     if (
-      !answer.trim() ||
+      !currentAnswer.trim() ||
       submitting ||
       timeLeft === 0 ||
       !canAnswer
@@ -615,14 +915,9 @@ export default function InterviewScreen({
       return;
     }
 
-    if (
-      recognitionRef.current &&
-      isListening
-    ) {
-      recognitionRef.current.stop();
-    }
+    stopListening();
 
-    window.speechSynthesis.cancel();
+    stopSpeech();
 
     setIsListening(false);
     setIsSpeaking(false);
@@ -631,11 +926,13 @@ export default function InterviewScreen({
 
     try {
       await onSubmitAnswer(
-        answer.trim(),
+        currentAnswer.trim(),
         averageAffectSamples(emotionSamplesRef.current)
       );
 
       setAnswer("");
+      setRunResult(null);
+      setDesignExplanation("");
     } catch (err) {
       console.error(
         "Answer submission failed:",
@@ -653,32 +950,44 @@ export default function InterviewScreen({
   };
 
   /*
-   * Exit interview
+   * End interview early: confirm, then score what was answered (including
+   * an answer still being typed) and show the report.
    */
-  const handleExit = () => {
-    stopCamera();
+  const handleEnd = async () => {
+    if (ending) return;
 
-    clearInterval(
-      timerRef.current
-    );
+    setEnding(true);
+    setEndError("");
+    const inProgress = canAnswer && hasWorkInProgress ? currentAnswer.trim() : "";
+    const affect = averageAffectSamples(emotionSamplesRef.current);
 
-    clearInterval(
-      faceDetectionIntervalRef.current
-    );
+    // Quiet the room while the report is built. On success the report
+    // replaces this screen and the unmount cleanup releases the camera.
+    stopVoice();
 
+    try {
+      await onEndInterview(inProgress, affect);
+    } catch (err) {
+      setEndError(
+        err?.response?.data?.detail || "Couldn't end the interview right now. Please try again."
+      );
+      setEnding(false);
+    }
+  };
+
+  const stopVoice = () => {
+    wantListeningRef.current = false;
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
 
-    window.speechSynthesis.cancel();
+    stopSpeech();
 
     clearTimeout(speechWatchdogRef.current);
     speechDoneRef.current = null;
 
     setIsListening(false);
     setIsSpeaking(false);
-
-    onExit();
   };
 
   const timerClass =
@@ -753,10 +1062,10 @@ export default function InterviewScreen({
 
           <button
             className="exit-interview-button"
-            onClick={handleExit}
+            onClick={() => endDialogRef.current?.showModal()}
           >
             <LogOut size={16} />
-            Exit Interview
+            End Interview
           </button>
 
         </div>
@@ -782,223 +1091,277 @@ export default function InterviewScreen({
       )}
 
       {/* =========================
-          AI INTERVIEWER STAGE
+          ROOM: interviewer stage on the left (full height),
+          answer box and candidate camera stacked on the right
           ========================= */}
-      <div className="interview-stage">
+      <div className={`interview-room ${coding ? "coding-mode" : ""} ${design ? "coding-mode design-mode" : ""}`}>
+        <div className="interview-stage">
+          <div className="ai-avatar-block">
+            <InterviewerFace state={avatarState} />
 
-        <div className="ai-avatar-block">
-          <div className="ai-person-stage">
-            <div className={`ai-person state-${avatarState}`}>
-              <div className="ai-person-body">
-                <div className="ai-person-lapel left" />
-                <div className="ai-person-lapel right" />
-                <div className="ai-person-collar" />
-                <div className="ai-person-tie" />
-              </div>
-
-              <div className="ai-person-head">
-                <div className="ai-person-hair" />
-                <div className="ai-person-ear left" />
-                <div className="ai-person-ear right" />
-
-                <div className="ai-person-face">
-                  <div className="ai-person-eyebrows">
-                    <span />
-                    <span />
-                  </div>
-
-                  <div className="ai-person-eyes">
-                    <span className="ai-person-eye" />
-                    <span className="ai-person-eye" />
-                  </div>
-
-                  <div className="ai-person-nose" />
-
-                  <div className="ai-person-mouth-wrap">
-                    <div className="ai-person-mouth" />
-                  </div>
-                </div>
-              </div>
+            <div className="ai-avatar-status" aria-live="polite">
+              <AvatarStatusIcon size={15} />
+              {avatarStatusLabel}
             </div>
           </div>
 
-          <div className="ai-avatar-status">
-            <AvatarStatusIcon size={15} />
-            {avatarStatusLabel}
-          </div>
-        </div>
+          <div className="question-block">
+            <span className="question-number">
+              Question{" "}
+              {session?.question_number}
+              {session?.total_questions ? ` of ${session.total_questions}` : ""}
+            </span>
 
-        <div className="question-block">
-          <span className="question-number">
-            Question{" "}
-            {session?.question_number}
-            {session?.total_questions ? ` of ${session.total_questions}` : ""}
-          </span>
+            <p className="question-text">
+              {session?.question}
+            </p>
 
-          <p className="question-text">
-            {session?.question}
-          </p>
-        </div>
-
-        {/* CANDIDATE SELF-VIEW */}
-        <div className="camera-pip">
-          {cameraAvailable ? (
-            <>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="webcam"
-              />
-
-              <div className="camera-pip-label">
-                <UserRound size={11} />
-                You
-              </div>
-
-              {faceDetectionReady && (
-                <div
-                  className={`presence-dot ${
-                    faceDetected ? "presence-ok" : "presence-warning"
-                  }`}
-                  title={
-                    faceDetected
-                      ? "Candidate detected"
-                      : "Face not detected — please stay visible"
-                  }
-                >
-                  {faceDetected ? (
-                    <Eye size={12} />
-                  ) : (
-                    <TriangleAlert size={12} />
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="camera-placeholder">
-              <CameraOff size={20} />
-              Camera unavailable
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* =========================
-          ANSWER SECTION
-          ========================= */}
-      <div className="answer-section">
-
-        <div className="answer-heading">
-          <span>
-            Your Answer
-          </span>
-
-          {isListening && (
-            <div className="listening-indicator">
-              <span className="listening-dot"></span>
-              Listening...
-            </div>
-          )}
-        </div>
-
-        <textarea
-          value={answer}
-          onChange={(e) =>
-            setAnswer(e.target.value)
-          }
-          placeholder={
-            !canAnswer
-              ? "Please wait for the interviewer..."
-              : speechSupported
-              ? "Click Start Answer and speak, or type your answer..."
-              : "Type your answer..."
-          }
-          disabled={
-            submitting ||
-            timeLeft === 0 ||
-            !canAnswer
-          }
-          rows={5}
-          onKeyDown={(e) => {
-            if (
-              e.key === "Enter" &&
-              (e.ctrlKey || e.metaKey)
-            ) {
-              handleSubmit();
-            }
-          }}
-        />
-
-        {error && (
-          <div className="interview-error">
-            {error}
-          </div>
-        )}
-
-        <div className="answer-footer">
-
-          <span>
-            {speechSupported
-              ? "Review your transcript before submitting."
-              : "Voice recognition is unavailable. Type your answer."}
-          </span>
-
-          <div className="answer-actions">
-
-            {/* MICROPHONE */}
-            {speechSupported && (
+            {"speechSynthesis" in window && session?.question && (
               <button
-                className={`voice-answer-button ${
-                  isListening
-                    ? "listening"
-                    : ""
-                }`}
-                onClick={
-                  toggleListening
-                }
-                disabled={
-                  submitting ||
-                  timeLeft === 0 ||
-                  !canAnswer
-                }
+                type="button"
+                className="replay-question-button"
+                onClick={replayQuestion}
+                disabled={isSpeaking || submitting}
               >
-                {isListening ? (
-                  <MicOff size={17} />
-                ) : (
-                  <Mic size={17} />
-                )}
-
-                {isListening
-                  ? "Stop Answer"
-                  : "Start Answer"}
+                <Volume2 size={15} />
+                {isSpeaking ? "Speaking..." : "Replay question"}
               </button>
             )}
 
-            {/* SUBMIT */}
-            <button
-              className="submit-answer-button"
-              onClick={handleSubmit}
+            {speechIssue && (
+              <p className="speech-issue" role="status">
+                {speechIssue}
+              </p>
+            )}
+          </div>
+
+          {coding && <CodingProblemPanel problem={coding.problem} />}
+          {design && <DesignProblemPanel design={design} />}
+        </div>
+
+        <aside className="interview-side">
+          {design ? (
+            <DesignWorkspace
+              key={design.prompt.id}
+              design={design}
+              onGraphChange={setDesignGraph}
+              explanation={designExplanation}
+              onExplanationChange={setDesignExplanation}
+              analyze={analyzeDesign}
+              onSubmit={handleSubmit}
+              submitting={submitting}
+              disabled={!canAnswer || timeLeft === 0}
+              error={error}
+            />
+          ) : coding ? (
+            <CodingWorkspace
+              problem={coding.problem}
+              code={code}
+              onChange={setCode}
+              onRun={handleRun}
+              onSubmit={handleSubmit}
+              running={running}
+              submitting={submitting}
+              disabled={!canAnswer || timeLeft === 0}
+              result={runResult}
+              error={error}
+            />
+          ) : (
+          <div className="answer-section">
+
+            <div className="answer-heading">
+              <span>
+                Your Answer
+              </span>
+
+              {isListening && (
+                <div className="listening-indicator">
+                  <span className="listening-dot"></span>
+                  Listening...
+                </div>
+              )}
+            </div>
+
+            <textarea
+              value={answer}
+              onChange={(e) =>
+                setAnswer(e.target.value)
+              }
+              placeholder={
+                !canAnswer
+                  ? "Please wait for the interviewer..."
+                  : speechSupported
+                  ? "Click Start Answer and speak, or type your answer..."
+                  : "Type your answer..."
+              }
               disabled={
-                !answer.trim() ||
                 submitting ||
                 timeLeft === 0 ||
                 !canAnswer
               }
-            >
-              <Send size={17} />
+              rows={5}
+              onKeyDown={(e) => {
+                if (
+                  e.key === "Enter" &&
+                  (e.ctrlKey || e.metaKey)
+                ) {
+                  handleSubmit();
+                }
+              }}
+            />
 
-              {submitting
-                ? "Evaluating..."
-                : "Submit Answer"}
-            </button>
+            {error && (
+              <div className="interview-error">
+                {error}
+              </div>
+            )}
 
+            <div className="answer-footer">
+
+              <span>
+                {speechSupported
+                  ? "Review your transcript before submitting."
+                  : "Voice recognition is unavailable. Type your answer."}
+              </span>
+
+              <div className="answer-actions">
+
+                {/* MICROPHONE */}
+                {speechSupported && (
+                  <button
+                    className={`voice-answer-button ${
+                      isListening
+                        ? "listening"
+                        : ""
+                    }`}
+                    onClick={
+                      toggleListening
+                    }
+                    disabled={
+                      submitting ||
+                      timeLeft === 0 ||
+                      !canAnswer
+                    }
+                  >
+                    {isListening ? (
+                      <MicOff size={17} />
+                    ) : (
+                      <Mic size={17} />
+                    )}
+
+                    {isListening
+                      ? "Stop Answer"
+                      : "Start Answer"}
+                  </button>
+                )}
+
+                {/* SUBMIT */}
+                <button
+                  className="submit-answer-button"
+                  onClick={handleSubmit}
+                  disabled={
+                    !answer.trim() ||
+                    submitting ||
+                    timeLeft === 0 ||
+                    !canAnswer
+                  }
+                >
+                  <Send size={17} />
+
+                  {submitting
+                    ? "Evaluating..."
+                    : "Submit Answer"}
+                </button>
+
+              </div>
+            </div>
           </div>
-        </div>
+          )}
+
+          {/* CANDIDATE SELF-VIEW */}
+          <div className="camera-panel">
+            {cameraAvailable ? (
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="webcam"
+                />
+
+                <div className="camera-pip-label">
+                  <UserRound size={11} />
+                  You
+                </div>
+
+                {faceDetectionReady && (
+                  <div
+                    className={`presence-dot ${
+                      faceDetected ? "presence-ok" : "presence-warning"
+                    }`}
+                    title={
+                      faceDetected
+                        ? "Candidate detected"
+                        : "Face not detected — please stay visible"
+                    }
+                  >
+                    {faceDetected ? (
+                      <Eye size={12} />
+                    ) : (
+                      <TriangleAlert size={12} />
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="camera-placeholder">
+                <CameraOff size={20} />
+                Camera unavailable
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
 
+      <dialog
+        ref={endDialogRef}
+        className="end-interview-dialog"
+        aria-labelledby="end-interview-title"
+        onCancel={(e) => ending && e.preventDefault()}
+      >
+        <h2 id="end-interview-title">End the interview now?</h2>
+        {endError && (
+          <p className="interview-error" role="alert">
+            {endError}
+          </p>
+        )}
+        <p>
+          You&apos;ll get your report and feedback for the questions answered so far
+          {canAnswer && hasWorkInProgress
+            ? coding
+              ? ", including the code in your editor"
+              : design
+              ? ", including your current design"
+              : ", including the answer you are typing"
+            : ""}
+          .
+          Unanswered questions aren&apos;t counted.
+        </p>
+        <div className="end-interview-actions">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => endDialogRef.current?.close()}
+            disabled={ending}
+          >
+            Keep going
+          </button>
+          <button type="button" className="btn btn-primary" onClick={handleEnd} disabled={ending}>
+            {ending ? "Preparing your report..." : "End and see report"}
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 }

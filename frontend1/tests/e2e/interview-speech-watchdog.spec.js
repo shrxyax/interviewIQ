@@ -40,6 +40,12 @@ async function stubBackend(page) {
   // backend's state machine closely enough for this test.
   let state = "READY";
 
+  // These tests exercise browser speech, which is the fallback when the
+  // backend can't render question audio.
+  await page.route("**/question-audio*", (route) =>
+    route.fulfill({ status: 503, json: { detail: "unavailable" } })
+  );
+
   await page.route("**/upload", (route) =>
     route.fulfill({ json: { resume_id: 1 } })
   );
@@ -134,7 +140,7 @@ test("silently-dropped speechSynthesis still reaches LISTENING via the watchdog"
   // ~9s; this lower bound just proves we didn't resolve near-instantly
   // through some unrelated path (e.g. the periodic resync).
   expect(elapsedMs).toBeGreaterThan(6000);
-  expect(warnings.some((w) => w.includes("speechSynthesis watchdog fired"))).toBe(true);
+  expect(warnings.some((w) => w.includes("Speech watchdog fired"))).toBe(true);
 });
 
 test("normal speechSynthesis (onend fires) reaches LISTENING without waiting for the watchdog", async ({ page }) => {
@@ -164,5 +170,5 @@ test("normal speechSynthesis (onend fires) reaches LISTENING without waiting for
 
   // Proves the ordinary onend path resolved this, not the ~9s watchdog.
   expect(elapsedMs).toBeLessThan(6000);
-  expect(warnings.some((w) => w.includes("speechSynthesis watchdog fired"))).toBe(false);
+  expect(warnings.some((w) => w.includes("Speech watchdog fired"))).toBe(false);
 });

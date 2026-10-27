@@ -5,7 +5,7 @@ import { startAttempt, submitAttempt, listAttempts } from "../services/aptitude"
 import Card from "../components/shared/Card";
 import Badge from "../components/shared/Badge";
 import ProgressBar from "../components/shared/ProgressBar";
-import { ErrorState } from "../components/shared/LoadingState";
+import "./AptitudePage.css";
 
 const CATEGORY_LABELS = {
   quantitative: "Quantitative Aptitude",
@@ -24,8 +24,8 @@ function Intro({ onStart, starting, history }) {
   return (
     <div>
       <Card style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 10 }}>Aptitude Test</h2>
-        <p style={{ fontSize: 14, color: "var(--muted)", lineHeight: 1.7, marginBottom: 14 }}>
+        <h2 className="section-title" style={{ marginBottom: 10 }}>Aptitude Test</h2>
+        <p className="apt-intro">
           A timed multiple-choice test covering the three areas most tech-interview
           aptitude rounds screen for: quantitative aptitude, logical reasoning, and
           verbal ability. You'll get 20 minutes for the full set; unanswered
@@ -34,7 +34,7 @@ function Intro({ onStart, starting, history }) {
         <button
           disabled={starting}
           onClick={onStart}
-          style={{ background: "var(--primary)", border: "none", color: "white", borderRadius: 10, padding: "11px 22px", fontWeight: 700, fontSize: 13.5 }}
+          className="btn btn-primary apt-start"
         >
           {starting ? "Starting..." : "Start test"}
         </button>
@@ -42,13 +42,13 @@ function Intro({ onStart, starting, history }) {
 
       {history && history.length > 0 && (
         <Card>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 10 }}>
+          <div className="section-label">
             Past attempts
           </div>
           {history.map((a) => (
-            <div key={a.attempt_id} style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, padding: "6px 0", borderBottom: "1px solid var(--border)" }}>
+            <div key={a.attempt_id} className="list-row">
               <span>{a.status === "submitted" ? `${a.score}/${a.total}` : "In progress"}</span>
-              <span style={{ color: "var(--muted)" }}>{new Date(a.started_at).toLocaleString()}</span>
+              <span className="muted">{new Date(a.started_at).toLocaleString()}</span>
             </div>
           ))}
         </Card>
@@ -95,11 +95,11 @@ function TestRunner({ attempt, onSubmitted }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <div style={{ fontSize: 13, color: "var(--muted)" }}>
+      <div className="row-between" style={{ marginBottom: 16 }}>
+        <div className="note">
           Question {current + 1} of {questions.length} &middot; {answeredCount} answered
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700, color: low ? "var(--danger)" : "var(--text)" }}>
+        <div className={`apt-timer ${low ? "low" : ""}`} aria-live="polite">
           <Timer size={16} /> {formatTime(remaining)}
         </div>
       </div>
@@ -107,10 +107,10 @@ function TestRunner({ attempt, onSubmitted }) {
       <ProgressBar value={current + 1} max={questions.length} />
 
       <Card style={{ marginTop: 16 }}>
-        <Badge tone="info" style={{ marginBottom: 12 }}>{CATEGORY_LABELS[q.category] || q.category}</Badge>
-        <p style={{ fontSize: 15, lineHeight: 1.7, marginBottom: 16 }}>{q.question}</p>
+        <Badge tone="info" className="apt-category">{CATEGORY_LABELS[q.category] || q.category}</Badge>
+        <p className="apt-question">{q.question}</p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="stack">
           {q.options.map((opt, i) => {
             const selected = answers[q.id] === i;
             return (
@@ -118,16 +118,8 @@ function TestRunner({ attempt, onSubmitted }) {
                 key={i}
                 data-testid="aptitude-option"
                 onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: i }))}
-                style={{
-                  textAlign: "left",
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  border: `1px solid ${selected ? "var(--primary)" : "var(--border)"}`,
-                  background: selected ? "var(--primary-soft)" : "var(--bg)",
-                  color: "var(--text)",
-                  fontSize: 13.5,
-                  cursor: "pointer",
-                }}
+                className={`apt-option ${selected ? "selected" : ""}`}
+                aria-pressed={selected}
               >
                 {opt}
               </button>
@@ -136,20 +128,20 @@ function TestRunner({ attempt, onSubmitted }) {
         </div>
       </Card>
 
-      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16, gap: 10 }}>
+      <div className="row-between" style={{ marginTop: 16 }}>
         <button
           disabled={current === 0}
           onClick={() => setCurrent((c) => c - 1)}
-          style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: 10, padding: "10px 18px", fontWeight: 600, fontSize: 13.5 }}
+          className="btn btn-secondary"
         >
           Previous
         </button>
 
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="row" style={{ gap: 10 }}>
           {current < questions.length - 1 ? (
             <button
               onClick={() => setCurrent((c) => c + 1)}
-              style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: 10, padding: "10px 18px", fontWeight: 600, fontSize: 13.5 }}
+              className="btn btn-secondary"
             >
               Next
             </button>
@@ -157,28 +149,21 @@ function TestRunner({ attempt, onSubmitted }) {
           <button
             disabled={submitting}
             onClick={doSubmit}
-            style={{ background: "var(--primary)", border: "none", color: "white", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 13.5 }}
+            className="btn btn-primary"
           >
             {submitting ? "Submitting..." : "Submit test"}
           </button>
         </div>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 16 }}>
+      <div className="apt-jump" aria-label="Jump to question">
         {questions.map((qq, i) => (
           <button
             key={qq.id}
             onClick={() => setCurrent(i)}
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              border: `1px solid ${i === current ? "var(--primary)" : "var(--border)"}`,
-              background: answers[qq.id] !== undefined ? "var(--primary-soft)" : "var(--card)",
-              color: "var(--text)",
-              fontSize: 12,
-              cursor: "pointer",
-            }}
+            className={`apt-jump-btn ${i === current ? "current" : ""} ${answers[qq.id] !== undefined ? "answered" : ""}`}
+            aria-label={`Question ${i + 1}${answers[qq.id] !== undefined ? ", answered" : ""}`}
+            aria-current={i === current ? "step" : undefined}
           >
             {i + 1}
           </button>
@@ -194,32 +179,32 @@ function Results({ result, onRetake }) {
   return (
     <div>
       <Card style={{ marginBottom: 16 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <div className="row" style={{ gap: 10, marginBottom: 10 }}>
           <ListChecks size={20} color="var(--primary)" />
-          <h2 style={{ fontSize: 18 }}>
+          <h2 className="section-title">
             Score: {result.score} / {result.total}
           </h2>
         </div>
         {result.expired && (
-          <p style={{ fontSize: 13, color: "var(--warning)", marginBottom: 10 }}>
+          <p className="note" style={{ color: "var(--warning)", marginBottom: 10 }}>
             Time ran out before you submitted — answers given up to that point were scored.
           </p>
         )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginTop: 10 }}>
+        <div className="apt-breakdown">
           {categories.map((c) => {
             const b = result.category_breakdown[c];
             return (
               <div key={c}>
-                <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 6 }}>{CATEGORY_LABELS[c]}</div>
+                <div className="stat-label" style={{ marginBottom: 6 }}>{CATEGORY_LABELS[c]}</div>
                 <ProgressBar value={b.correct} max={b.total} />
-                <div style={{ fontSize: 12.5, marginTop: 4 }}>{b.correct}/{b.total}</div>
+                <div className="apt-breakdown-count">{b.correct}/{b.total}</div>
               </div>
             );
           })}
         </div>
         <button
           onClick={onRetake}
-          style={{ marginTop: 16, background: "var(--primary)", border: "none", color: "white", borderRadius: 10, padding: "10px 18px", fontWeight: 700, fontSize: 13.5 }}
+          className="btn btn-primary" style={{ marginTop: 16 }}
         >
           Take another attempt
         </button>
@@ -229,33 +214,27 @@ function Results({ result, onRetake }) {
         const correct = q.selected_index === q.correct_index;
         return (
           <Card key={q.id} style={{ marginBottom: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+            <div className="row-between" style={{ marginBottom: 8 }}>
               <Badge tone="info">{CATEGORY_LABELS[q.category] || q.category}</Badge>
               {correct ? (
-                <span style={{ color: "var(--success)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 13 }}>
+                <span className="apt-verdict text-success">
                   <CheckCircle2 size={15} /> Correct
                 </span>
               ) : (
-                <span style={{ color: "var(--danger)", display: "flex", alignItems: "center", gap: 6, fontWeight: 600, fontSize: 13 }}>
+                <span className="apt-verdict text-danger">
                   <XCircle size={15} /> {q.selected_index === undefined || q.selected_index === null ? "Unanswered" : "Incorrect"}
                 </span>
               )}
             </div>
-            <p style={{ fontSize: 14, marginBottom: 10 }}>{i + 1}. {q.question}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <p className="apt-review-question">{i + 1}. {q.question}</p>
+            <div className="stack" style={{ gap: 6 }}>
               {q.options.map((opt, oi) => {
                 const isCorrect = oi === q.correct_index;
                 const isSelected = oi === q.selected_index;
                 return (
                   <div
                     key={oi}
-                    style={{
-                      padding: "8px 12px",
-                      borderRadius: 8,
-                      fontSize: 13,
-                      border: `1px solid ${isCorrect ? "var(--success)" : isSelected ? "var(--danger)" : "var(--border)"}`,
-                      background: isCorrect ? "var(--success-soft)" : isSelected ? "var(--danger-soft)" : "transparent",
-                    }}
+                    className={`apt-review-option ${isCorrect ? "correct" : isSelected ? "wrong" : ""}`}
                   >
                     {opt}
                   </div>
@@ -263,7 +242,7 @@ function Results({ result, onRetake }) {
               })}
             </div>
             {q.explanation && (
-              <p style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 10 }}>{q.explanation}</p>
+              <p className="apt-explanation">{q.explanation}</p>
             )}
           </Card>
         );
@@ -317,7 +296,7 @@ export default function AptitudePage() {
       ) : (
         <>
           {startError && (
-            <p style={{ color: "var(--danger)", fontSize: 13, marginBottom: 14 }}>{startError}</p>
+            <p className="error-text" style={{ marginBottom: 14 }}>{startError}</p>
           )}
           <Intro onStart={handleStart} starting={starting} history={history} />
         </>

@@ -22,7 +22,7 @@ export default function ChatInput({ onSend }) {
 
       <input
         className="chat-input"
-        placeholder="Ask anything about your document..."
+        placeholder="Ask about your resume, a CS concept, or interview prep..."
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
         onKeyDown={handleKeyDown}

@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -92,24 +93,71 @@ def set_problem_status(db: Session, user: User, problem_id: str, status: str) ->
     return {"problem_id": problem_id, "status": status}
 
 
-def get_core_cs(db: Session) -> dict:
-    topics = db.query(SheetTopic).filter_by(sheet="core_cs").order_by(SheetTopic.order).all()
+def _note_summary(body: str) -> str:
+    """First paragraph of a note as plain text, for topic lists."""
+
+    first = body.strip().split("\n\n", 1)[0]
+    plain = re.sub(r"[*_`#>]", "", first).strip()
+    return plain if len(plain) <= 180 else plain[:177].rsplit(" ", 1)[0] + "..."
+
+
+def _core_cs_index(db: Session) -> tuple[list[SheetTopic], dict[str, list[CoreCSNote]]]:
+    subjects = db.query(SheetTopic).filter_by(sheet="core_cs").order_by(SheetTopic.order).all()
     notes = db.query(CoreCSNote).order_by(CoreCSNote.order).all()
 
-    by_topic: dict[str, list] = {t.id: [] for t in topics}
+    by_subject: dict[str, list[CoreCSNote]] = {s.id: [] for s in subjects}
     for n in notes:
-        by_topic.setdefault(n.topic_id, []).append(n)
+        if n.topic_id in by_subject:
+            by_subject[n.topic_id].append(n)
+
+    return subjects, by_subject
+
+
+def get_core_cs(db: Session) -> dict:
+    """Subjects with their topic list (titles + one-line summaries, no bodies)."""
+
+    subjects, by_subject = _core_cs_index(db)
 
     return {
         "topics": [
             {
-                "id": t.id,
-                "name": t.name,
-                "notes": [{"id": n.id, "title": n.title, "body_markdown": n.body_markdown} for n in by_topic.get(t.id, [])],
+                "id": s.id,
+                "name": s.name,
+                "notes": [
+                    {"id": n.id, "title": n.title, "summary": _note_summary(n.body_markdown)}
+                    for n in by_subject[s.id]
+                ],
             }
-            for t in topics
+            for s in subjects
         ]
     }
+
+
+def get_core_cs_note(db: Session, note_id: str) -> dict:
+    """One topic's full content, plus its neighbours for prev/next navigation."""
+
+    subjects, by_subject = _core_cs_index(db)
+
+    for s in subjects:
+        notes = by_subject[s.id]
+        for i, n in enumerate(notes):
+            if n.id != note_id:
+                continue
+
+            neighbour = lambda m: {"id": m.id, "title": m.title} if m else None  # noqa: E731
+
+            return {
+                "id": n.id,
+                "title": n.title,
+                "body_markdown": n.body_markdown,
+                "subject": {"id": s.id, "name": s.name},
+                "position": i + 1,
+                "total": len(notes),
+                "prev": neighbour(notes[i - 1] if i > 0 else None),
+                "next": neighbour(notes[i + 1] if i + 1 < len(notes) else None),
+            }
+
+    raise ContentError("Core CS topic not found.")
 
 
 # --------------------------------------------------------------------------

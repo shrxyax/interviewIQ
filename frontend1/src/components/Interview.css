@@ -165,7 +165,7 @@
     gap: 10px;
 
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
 
     border: none;
     border-radius: var(--radius-md);
@@ -204,29 +204,33 @@
    every descendant (already written against var(--text)/var(--card)/...)
    renders dark automatically, with zero JS or markup changes. */
 .interview-screen {
-    --bg:#131210;
-    --sidebar:#131210;
-    --card:#1c1a16;
-    --card-hover:#262320;
-    --border:#332f28;
+    --bg:#0b1113;
+    --sidebar:#0b1113;
+    --card:#151e21;
+    --card-hover:#1d282c;
+    --border:#263539;
 
-    --primary:#9db892;
-    --primary-hover:#b2cba7;
-    --primary-soft:rgba(157,184,146,0.16);
+    --primary:#7fcfe0;
+    --primary-hover:#9cdbe8;
+    --primary-soft:rgba(127,207,224,0.16);
+    --on-primary:#0b1113;
 
-    --text:#f3f1ea;
-    --muted:#9c96a8;
+    --highlight:#e0a98d;
+    --highlight-soft:rgba(224,169,141,0.22);
 
-    --success:#7fc492;
-    --success-soft:rgba(127,196,146,0.16);
-    --warning:#e3b05c;
-    --warning-soft:rgba(227,176,92,0.16);
-    --danger:#e2836a;
-    --danger-soft:rgba(226,131,106,0.16);
-    --info:#8fb0c9;
-    --info-soft:rgba(143,176,201,0.16);
+    --text:#e8f0f2;
+    --muted:#93a6ab;
 
-    --glass-bg:#1b1824;
+    --success:#6fc28d;
+    --success-soft:rgba(111,194,141,0.16);
+    --warning:#e2a956;
+    --warning-soft:rgba(226,169,86,0.16);
+    --danger:#ec8079;
+    --danger-soft:rgba(236,128,121,0.16);
+    --info:#8ea9e0;
+    --info-soft:rgba(142,169,224,0.16);
+
+    --glass-bg:#131c1f;
     --glass-border:rgba(255,255,255,0.08);
 
     /* Full-page takeover: the live interview room owns the whole viewport
@@ -291,322 +295,313 @@
     background: var(--card-hover);
 }
 
+/* End-interview confirmation */
+.end-interview-dialog {
+    width: min(440px, calc(100vw - 32px));
+    margin: auto;
+    padding: 22px 22px 18px;
+
+    background: var(--card);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .35);
+}
+
+.end-interview-dialog::backdrop {
+    background: rgba(8, 12, 20, .55);
+}
+
+.end-interview-dialog h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.end-interview-dialog p {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.end-interview-dialog .interview-error {
+    margin-bottom: 10px;
+}
+
+.end-interview-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+/* =========================================
+   ROOM LAYOUT
+   Interviewer stage fills the left column top to bottom; the answer
+   box and the candidate's camera stack in the right column.
+   ========================================= */
+
+.interview-room {
+    flex: 1;
+    /* On short screens the room scrolls rather than squeezing panels. */
+    min-height: 560px;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+    gap: 22px;
+}
+
 .interview-stage {
     position: relative;
-
-    flex: 1;
     min-height: 0;
 
-    background: var(--glass-bg);
+    background:
+        radial-gradient(circle at 50% 38%, var(--primary-soft), transparent 62%),
+        var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
 
-    padding: 36px 40px;
-    margin-bottom: 22px;
+    padding: 40px;
 
-    display: grid;
-    grid-template-columns: minmax(260px, 360px) 1fr;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 32px;
+    justify-content: center;
+    gap: 36px;
 
+    text-align: center;
     overflow: hidden;
 }
 
+.interview-side {
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
 /* =========================================
-   AI INTERVIEWER AVATAR — a person in formal
-   wear, seated at a desk, lips moving while
-   the question is read out.
+   AI INTERVIEWER: an illustrated face in a
+   round frame. Rings around it show the state
+   (speaking / listening / thinking); the face
+   blinks, lip-syncs, tilts and glances.
    ========================================= */
 
 .ai-avatar-block {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 18px;
-    height: 100%;
+    gap: 22px;
 }
 
-.ai-person-stage {
+.ai-avatar {
+    --avatar: clamp(190px, 32vh, 290px);
+
     position: relative;
-    width: 220px;
-    height: 260px;
+    width: var(--avatar);
+    height: var(--avatar);
     flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
 }
 
-.ai-person-stage::before {
-    /* desk */
-    content: "";
-    position: absolute;
-    left: -10px;
-    right: -10px;
-    bottom: 18px;
-    height: 16px;
-    background: linear-gradient(180deg, var(--card-hover), var(--card));
-    border: 1px solid var(--border);
-    border-radius: 6px;
-}
+.ai-face {
+    position: relative;
+    z-index: 2;
 
-.ai-person {
-    position: absolute;
-    left: 50%;
-    bottom: 26px;
-    transform: translateX(-50%);
-    width: 176px;
-    height: 230px;
-    animation: personIdleSway 4.5s ease-in-out infinite;
-}
-
-.ai-person.state-speaking {
-    animation: personSpeakingSway 2.2s ease-in-out infinite;
-}
-
-.ai-person.state-thinking {
-    animation: personThinking 1.6s ease-in-out infinite;
-}
-
-.ai-person.state-listening {
-    animation: personListening 2.6s ease-in-out infinite;
-}
-
-/* seated torso / suit jacket */
-.ai-person-body {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    transform: translateX(-50%);
-    width: 150px;
-    height: 118px;
-
-    background: linear-gradient(160deg, #2a3348, #1b2234);
-    border-radius: 50px 50px 14px 14px;
-    box-shadow: inset 0 -10px 24px rgba(0,0,0,0.35);
-}
-
-.ai-person-collar {
-    position: absolute;
-    left: 50%;
-    top: 6px;
-    transform: translateX(-50%);
-    width: 54px;
-    height: 46px;
-
-    background: #f4f1e8;
-    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-}
-
-.ai-person-tie {
-    position: absolute;
-    left: 50%;
-    top: 10px;
-    transform: translateX(-50%);
-    width: 13px;
-    height: 48px;
-
-    background: var(--primary);
-    clip-path: polygon(50% 0%, 100% 12%, 62% 100%, 38% 100%, 0% 12%);
-}
-
-.ai-person-lapel {
-    position: absolute;
-    top: 2px;
-    width: 46px;
-    height: 70px;
-    background: #1b2234;
-}
-
-.ai-person-lapel.left {
-    left: 18px;
-    clip-path: polygon(100% 0%, 100% 100%, 0% 60%);
-    border-radius: 0 0 0 30px;
-}
-
-.ai-person-lapel.right {
-    right: 18px;
-    clip-path: polygon(0% 0%, 0% 100%, 100% 60%);
-    border-radius: 0 0 30px 0;
-}
-
-/* head */
-.ai-person-head {
-    position: absolute;
-    left: 50%;
-    bottom: 100px;
-    transform: translateX(-50%);
-    width: 92px;
-    height: 100px;
-
-    background: #e8b892;
-    border-radius: 46% 46% 42% 42%;
-    box-shadow: inset -8px -6px 16px rgba(0,0,0,0.12);
-}
-
-.ai-person-ear {
-    position: absolute;
-    top: 38px;
-    width: 12px;
-    height: 18px;
-    background: #e3ac85;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
+    overflow: hidden;
+
+    background: radial-gradient(circle at 50% 35%, #2c4a52, #172629 70%);
+    border: 3px solid var(--primary);
+    box-shadow:
+        0 0 0 8px var(--primary-soft),
+        0 18px 50px rgba(0,0,0,0.45);
+
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.ai-person-ear.left { left: -6px; }
-.ai-person-ear.right { right: -6px; }
-
-.ai-person-hair {
-    position: absolute;
-    top: -10px;
-    left: -4px;
-    right: -4px;
-    height: 48px;
-
-    background: #2b241e;
-    border-radius: 50% 50% 38% 38% / 60% 60% 30% 30%;
+.ai-face-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
-.ai-person-face {
+/* Face paint */
+.ai-face .skin { fill: #e8b892; }
+.ai-face .skin-shade { fill: #d9a579; }
+.ai-face .hair { fill: #2b241e; }
+.ai-face .cheek { fill: rgba(217,120,96,0.22); }
+.ai-face .eye-white { fill: #fbf8f3; }
+.ai-face .iris { fill: #2b241e; }
+.ai-face .eye-glint { fill: #ffffff; }
+
+.ai-face .brow {
+    fill: none;
+    stroke: #2b241e;
+    stroke-width: 4;
+    stroke-linecap: round;
+}
+
+.ai-face .nose {
+    fill: none;
+    stroke: #c48d62;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+}
+
+.ai-face .mouth-closed {
+    fill: none;
+    stroke: #9a5a4a;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+}
+
+.ai-face .mouth-open {
+    fill: #6b2f2a;
+    opacity: 0;
+}
+
+/* Every animated SVG group transforms around its own box. */
+.ai-face-head,
+.ai-face-eye,
+.ai-face-iris,
+.ai-face-brows,
+.ai-face .mouth-open {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.35s ease;
+}
+
+.ai-face-head {
+    transform-origin: 50% 100%;
+    animation: faceIdle 6s ease-in-out infinite;
+}
+
+.ai-face-eye {
+    animation: faceBlink 4.8s infinite;
+}
+
+/* Rings expand outward from the frame. */
+.ai-avatar-ring {
     position: absolute;
     inset: 0;
-    top: 34px;
-}
-
-.ai-person-eyebrows {
-    position: absolute;
-    top: 8px;
-    left: 0;
-    right: 0;
-
-    display: flex;
-    justify-content: space-between;
-    padding: 0 16px;
-}
-
-.ai-person-eyebrows span {
-    width: 16px;
-    height: 3px;
-    border-radius: 2px;
-    background: #2b241e;
-    transition: transform 0.3s ease;
-}
-
-.ai-person.state-thinking .ai-person-eyebrows span:first-child {
-    transform: translateY(-2px) rotate(-6deg);
-}
-
-.ai-person-eyes {
-    position: absolute;
-    top: 20px;
-    left: 0;
-    right: 0;
-
-    display: flex;
-    justify-content: space-between;
-    padding: 0 18px;
-}
-
-.ai-person-eye {
-    width: 10px;
-    height: 10px;
     border-radius: 50%;
-    background: #2b241e;
-    animation: personBlink 4.8s ease-in-out infinite;
+    border: 2px solid var(--primary);
+    opacity: 0;
 }
 
-.ai-person.state-listening .ai-person-eye {
-    animation-duration: 2.6s;
-}
-
-.ai-person-nose {
+/* Rotating arc, only shown while thinking. */
+.ai-avatar-arc {
     position: absolute;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 10px;
-    border-radius: 0 0 8px 8px;
-    background: #d9a579;
+    inset: -12px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--primary);
+    border-right-color: var(--primary-soft);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.ai-person-mouth-wrap {
-    position: absolute;
-    top: 48px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 14px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* speaking: mouth moves, head bobs, rings pulse outward */
+.ai-avatar.state-speaking .mouth-closed {
+    opacity: 0;
 }
 
-.ai-person-mouth {
-    width: 22px;
-    height: 4px;
-    border-radius: 3px;
-    background: #9a5a4a;
-    transition: height 0.12s ease, border-radius 0.12s ease;
+.ai-avatar.state-speaking .mouth-open {
+    opacity: 1;
+    animation: faceLipSync 0.38s ease-in-out infinite alternate;
 }
 
-/* idle: a calm closed-ish smile */
-.ai-person.state-idle .ai-person-mouth {
-    height: 3px;
-    border-radius: 0 0 8px 8px;
+.ai-avatar.state-speaking .ai-face-head {
+    animation: faceSpeak 2.4s ease-in-out infinite;
 }
 
-/* speaking: lips cycle through open/closed shapes, like talking */
-.ai-person.state-speaking .ai-person-mouth {
-    animation: lipSync 0.42s steps(1) infinite;
+.ai-avatar.state-speaking .ai-avatar-ring {
+    animation: avatarRing 2.4s ease-out infinite;
 }
 
-/* listening: polite, slightly open attentive look */
-.ai-person.state-listening .ai-person-mouth {
-    height: 6px;
-    border-radius: 6px;
+.ai-avatar.state-speaking .ai-avatar-ring:nth-child(2) { animation-delay: 0.8s; }
+.ai-avatar.state-speaking .ai-avatar-ring:nth-child(3) { animation-delay: 1.6s; }
+
+/* listening: head tilts, brows lift, warm rings ripple inward */
+.ai-avatar.state-listening .ai-face {
+    border-color: var(--highlight);
+    box-shadow:
+        0 0 0 8px var(--highlight-soft),
+        0 18px 50px rgba(0,0,0,0.45);
 }
 
-/* thinking: pursed to one side */
-.ai-person.state-thinking .ai-person-mouth {
-    width: 14px;
-    height: 3px;
-    border-radius: 3px;
-    transform: translateX(3px);
+.ai-avatar.state-listening .ai-face-head {
+    animation: none;
+    transform: rotate(-4deg);
 }
 
-@keyframes lipSync {
-    0%   { height: 3px;  border-radius: 3px; width: 22px; }
-    20%  { height: 9px;  border-radius: 50%; width: 18px; }
-    40%  { height: 5px;  border-radius: 4px; width: 24px; }
-    60%  { height: 11px; border-radius: 50%; width: 16px; }
-    80%  { height: 4px;  border-radius: 3px; width: 22px; }
-    100% { height: 3px;  border-radius: 3px; width: 22px; }
+.ai-avatar.state-listening .ai-face-brows {
+    transform: translateY(-2px);
 }
 
-@keyframes personBlink {
+.ai-avatar.state-listening .ai-avatar-ring {
+    border-color: var(--highlight);
+    animation: avatarListen 2.2s ease-in infinite;
+}
+
+.ai-avatar.state-listening .ai-avatar-ring:nth-child(2) { animation-delay: 0.73s; }
+.ai-avatar.state-listening .ai-avatar-ring:nth-child(3) { animation-delay: 1.46s; }
+
+/* thinking: eyes glance up, brows raise, arc spins */
+.ai-avatar.state-thinking .ai-face-iris {
+    transform: translate(-1.5px, -2px);
+}
+
+.ai-avatar.state-thinking .ai-face-brows {
+    transform: translateY(-3px);
+}
+
+.ai-avatar.state-thinking .ai-avatar-arc {
+    opacity: 1;
+    animation: avatarSpin 1.1s linear infinite;
+}
+
+@keyframes faceIdle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(1.5px) rotate(0.6deg); }
+}
+
+@keyframes faceSpeak {
+    0%, 100% { transform: rotate(0deg); }
+    30%      { transform: rotate(1.5deg); }
+    70%      { transform: rotate(-1.2deg); }
+}
+
+@keyframes faceBlink {
     0%, 92%, 100% { transform: scaleY(1); }
-    96% { transform: scaleY(0.1); }
+    95%           { transform: scaleY(0.1); }
 }
 
-@keyframes personIdleSway {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(-3px); }
+@keyframes faceLipSync {
+    from { transform: scaleY(0.35); }
+    to   { transform: scaleY(1); }
 }
 
-@keyframes personSpeakingSway {
-    0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
-    30% { transform: translateX(-50%) translateY(-2px) rotate(0.6deg); }
-    70% { transform: translateX(-50%) translateY(-1px) rotate(-0.6deg); }
+@keyframes avatarRing {
+    0%   { transform: scale(1);    opacity: 0.6; }
+    100% { transform: scale(1.35); opacity: 0; }
 }
 
-@keyframes personThinking {
-    0%, 100% { transform: translateX(-50%) rotate(0deg); }
-    50% { transform: translateX(-50%) rotate(-2.5deg) translateY(-2px); }
+@keyframes avatarListen {
+    0%   { transform: scale(1.35); opacity: 0; }
+    60%  { opacity: 0.55; }
+    100% { transform: scale(1);    opacity: 0; }
 }
 
-@keyframes personListening {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50% { transform: translateX(-50%) translateY(-1.5px); }
+@keyframes avatarSpin {
+    to { transform: rotate(360deg); }
 }
 
 .ai-avatar-status {
@@ -628,8 +623,8 @@
    ========================================= */
 
 .question-block {
-    max-width: 620px;
-    text-align: left;
+    max-width: 640px;
+    text-align: center;
 }
 
 .question-number {
@@ -654,17 +649,17 @@
    CAMERA SELF-VIEW (PiP)
    ========================================= */
 
-.camera-pip {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
+.camera-panel {
+    position: relative;
 
-    width: 160px;
-    height: 120px;
+    /* Fills whatever height the answer box leaves in the column. */
+    width: 100%;
+    flex: 1 1 0;
+    min-height: 170px;
 
     background: #050505;
     border: 1px solid var(--glass-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
 
     overflow: hidden;
@@ -733,43 +728,398 @@
 }
 
 @media (max-width: 900px) {
+    /* Stacked: stage on top at its natural height, then answer, then camera;
+       the room scrolls. */
+    .interview-room {
+        flex: none;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .interview-stage {
-        grid-template-columns: 1fr;
-        grid-auto-rows: min-content;
-        overflow-y: auto;
-        text-align: center;
+        padding: 32px 20px;
+        gap: 24px;
     }
 
-    .question-block {
-        text-align: center;
-        max-width: 100%;
+    .ai-avatar {
+        --avatar: 170px;
     }
 
-    .ai-person-stage {
-        width: 160px;
-        height: 200px;
+    .interview-room {
+        min-height: 0;
     }
 
-    .ai-person {
-        width: 136px;
-        height: 180px;
+    .camera-panel {
+        flex: none;
+        width: 100%;
+        max-width: 320px;
+        aspect-ratio: 4 / 3;
+        min-height: 0;
+        margin: 0 auto;
     }
 }
 
 @media (max-width: 700px) {
-    .interview-stage {
-        padding: 28px 18px;
-    }
-
-    .camera-pip {
-        width: 120px;
-        height: 90px;
-        bottom: 14px;
-        right: 14px;
-    }
-
     .question-text {
         font-size: 21px;
+    }
+}
+
+/* =========================================
+   CODING ROUND: problem on the left (the
+   interviewer shrinks to a header), editor and
+   test results on the right above the camera.
+   ========================================= */
+
+.interview-room.coding-mode {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
+}
+
+.coding-mode .interview-stage {
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 18px;
+    padding: 22px 24px;
+    text-align: left;
+    overflow-y: auto;
+}
+
+.coding-mode .ai-avatar-block {
+    flex-direction: row;
+    gap: 14px;
+}
+
+.coding-mode .ai-avatar {
+    --avatar: 76px;
+}
+
+.coding-mode .question-block {
+    max-width: none;
+    text-align: left;
+}
+
+.coding-mode .question-number {
+    margin-bottom: 6px;
+}
+
+.coding-mode .question-text {
+    font-size: 15px;
+    line-height: 1.55;
+    letter-spacing: 0;
+    color: var(--muted);
+}
+
+.coding-problem {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.coding-problem-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.coding-problem-head h2 {
+    font-size: 20px;
+}
+
+.coding-statement {
+    font-size: 14.5px;
+    line-height: 1.65;
+}
+
+.coding-statement code {
+    font-size: 0.9em;
+    background: var(--card-hover);
+    border-radius: 5px;
+    padding: 1px 5px;
+}
+
+.coding-signature {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--card-hover);
+    font-size: 13px;
+}
+
+.coding-tests {
+    list-style: decimal;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 12.5px;
+    line-height: 1.6;
+}
+
+.coding-tests li {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card);
+    overflow-wrap: anywhere;
+}
+
+.coding-workspace {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+
+    padding: 16px;
+
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Editor takes the space left after the buttons and results. */
+.coding-editor {
+    flex: 1 1 0;
+    min-height: 180px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.coding-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.coding-actions > button {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Shrinks (and scrolls) to whatever the editor leaves. */
+.coding-results {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.coding-results-summary {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.coding-results-summary.pass {
+    color: var(--success);
+}
+
+.coding-results-summary.fail {
+    color: var(--danger);
+}
+
+.coding-result {
+    border: 1px solid var(--border);
+    border-left-width: 3px;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12.5px;
+}
+
+.coding-result.pass {
+    border-left-color: var(--success);
+}
+
+.coding-result.fail {
+    border-left-color: var(--danger);
+}
+
+.coding-result.warn {
+    border-left-color: var(--warning);
+}
+
+.coding-result-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.coding-result.pass .coding-result-title {
+    color: var(--success);
+}
+
+.coding-result.fail .coding-result-title {
+    color: var(--danger);
+}
+
+.coding-result.warn .coding-result-title {
+    color: var(--warning);
+}
+
+.coding-result-body {
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.coding-error {
+    margin-top: 4px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: var(--danger-soft);
+    color: var(--text);
+    white-space: pre-wrap;
+    font-size: 12px;
+    max-height: 120px;
+    overflow: auto;
+}
+
+/* Design-lab round: the canvas needs the width. */
+.interview-room.design-mode {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.5fr);
+}
+
+.design-requirements,
+.design-catalog {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13.5px;
+}
+
+.design-requirements li,
+.design-catalog li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    font-variant-numeric: tabular-nums;
+}
+
+.design-requirements span,
+.design-catalog span {
+    color: var(--muted);
+}
+
+.design-toolbar {
+    display: flex;
+    gap: 8px;
+}
+
+.design-toolbar .field {
+    flex: 1;
+    padding: 8px 10px;
+}
+
+/* The design panel scrolls as a whole: a fixed-height canvas, then the
+   analysis, explanation and actions below it. */
+.design-workspace {
+    overflow-y: auto;
+}
+
+.design-workspace > * {
+    flex-shrink: 0;
+}
+
+.design-canvas {
+    height: 300px;
+}
+
+.design-results {
+    max-height: none;
+    overflow: visible;
+}
+
+/* Analyze / Submit stay reachable while the panel scrolls. */
+.design-workspace .coding-actions {
+    position: sticky;
+    bottom: -16px;
+    margin: 0 -16px -16px;
+    padding: 12px 16px 16px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    z-index: 5;
+}
+
+/* Connection handles are hidden on the lab page; here they are the only
+   hint of where to drag from. */
+.design-canvas .flow-handle {
+    opacity: 1;
+    width: 9px;
+    height: 9px;
+    background: var(--primary);
+}
+
+.design-selected {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+}
+
+.design-selected label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+}
+
+.design-selected .field {
+    width: 76px;
+    padding: 6px 8px;
+}
+
+.design-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.design-metrics span {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.design-explanation {
+    flex: none;
+    resize: vertical;
+    min-height: 0;
+}
+
+/* The camera shrinks to a small strip while coding. */
+.coding-mode .camera-panel {
+    flex: 0 0 96px;
+    min-height: 0;
+}
+
+@media (max-width: 900px) {
+    .interview-room.coding-mode {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .coding-editor {
+        flex: none;
+        height: 320px;
+    }
+
+    .coding-results {
+        max-height: none;
     }
 }
 
@@ -780,6 +1130,30 @@
     box-shadow: var(--shadow-md);
 
     padding: 20px;
+
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.answer-section textarea {
+    flex: 1;
+}
+
+.interview-side .answer-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+.interview-side .answer-actions {
+    width: 100%;
+}
+
+.interview-side .voice-answer-button,
+.interview-side .submit-answer-button {
+    flex: 1;
+    justify-content: center;
 }
 
 .answer-section textarea {
@@ -828,7 +1202,7 @@
     gap: 9px;
 
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
 
     border: none;
     border-radius: 11px;
@@ -1294,11 +1668,67 @@
     margin-bottom: 10px;
 }
 
+.feedback-answer {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--border);
+    border-radius: 0 8px 8px 0;
+    background: var(--card-hover);
+
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text);
+}
+
+.feedback-answer span {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.feedback-code {
+    margin: 4px 0 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    white-space: pre;
+    overflow-x: auto;
+    max-height: 280px;
+}
+
+.feedback-coding-verdict {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.feedback-design-components {
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    color: var(--muted);
+}
+
+.feedback-coding-verdict.pass {
+    color: var(--success);
+}
+
+.feedback-coding-verdict.fail {
+    color: var(--danger);
+}
+
 .feedback-evaluation {
     color: var(--muted);
 
     font-size: 13px;
     line-height: 1.6;
+    /* Feedback comes as "What worked: ..." / "To improve: ..." lines. */
+    white-space: pre-line;
 }
 
 .final-feedback-card {
@@ -1342,7 +1772,7 @@
     height: 52px;
 
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
 
     border: none;
     border-radius: 13px;
@@ -1638,4 +2068,38 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+/* Replay the question aloud; also the way back in when the browser blocked
+   automatic speech. */
+.replay-question-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-top: 18px;
+    padding: 8px 14px;
+
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.replay-question-button:hover:not(:disabled) {
+    color: var(--text);
+    border-color: var(--primary);
+}
+
+.replay-question-button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
+.speech-issue {
+    margin-top: 12px;
+    color: var(--warning);
+    font-size: 13px;
 }

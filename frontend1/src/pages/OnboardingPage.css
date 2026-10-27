@@ -46,7 +46,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: var(--on-primary);
 }
 
 .landing-nav-links {
@@ -93,7 +93,7 @@
     border-radius: var(--radius-sm);
     border: none;
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
     font-size: 13.5px;
     font-weight: 700;
     box-shadow: var(--shadow-sm);
@@ -180,7 +180,7 @@
     border: none;
 
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
     font-size: 15px;
     font-weight: 700;
     box-shadow: var(--shadow-md);
@@ -285,21 +285,22 @@
    interview room itself (see .interview-screen) rather than a generic
    dashboard mock — it is a true preview of the product. */
 .landing-mock-window {
-    --card:#1c1a16;
-    --border:#332f28;
-    --primary:#9db892;
-    --primary-hover:#b2cba7;
-    --muted:#9e977f;
+    --card:#151e21;
+    --border:#263539;
+    --primary:#7fcfe0;
+    --primary-hover:#9cdbe8;
+    --on-primary:#0b1113;
+    --muted:#93a6ab;
 
     position: relative;
     margin: 0 auto;
     max-width: 380px;
 
-    background: #15130f;
+    background: #0b1113;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
-    color: #f1ede2;
+    color: #e8f0f2;
 
     padding: 32px 26px;
 
@@ -315,7 +316,7 @@
     height: 56px;
     border-radius: 50%;
     background: var(--primary);
-    color: white;
+    color: var(--on-primary);
     font-weight: 700;
     font-size: 12px;
 
@@ -660,7 +661,7 @@
 }
 
 .landing-preview-window {
-    background: #15130f;
+    background: #0b1113;
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
@@ -688,13 +689,13 @@
 
 .landing-preview-titlebar span {
     margin-left: 8px;
-    color: #8b96ad;
+    color: #93a6ab;
     font-size: 11.5px;
 }
 
 .landing-preview-body {
     padding: 22px;
-    color: #eef2fa;
+    color: #e8f0f2;
 }
 
 @media (max-width: 900px) {
@@ -786,4 +787,137 @@
 @keyframes onboardingSlideIn {
     from { opacity: 0; transform: translateX(14px); }
     to { opacity: 1; transform: translateX(0); }
+}
+
+/* The mock window also appears inline inside a feature preview. */
+.landing-mock-window.inline {
+    margin: 0;
+    max-width: none;
+}
+
+/* Feature previews are always dark, like the interview room, so they get
+   the room's tokens regardless of the site theme. */
+.landing-preview-window {
+    --text: #e8f0f2;
+    --muted: #93a6ab;
+    --primary: #7fcfe0;
+    --border: rgba(255,255,255,0.12);
+    --success: #6fc28d;
+    --warning: #e2a956;
+    --danger: #ec8079;
+    --danger-soft: rgba(236,128,121,0.16);
+}
+
+.lp-beliefs,
+.lp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lp-belief {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lp-belief-label {
+    width: 86px;
+    font-size: 11.5px;
+    color: var(--muted);
+}
+
+.lp-belief-track {
+    flex: 1;
+    height: 6px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+
+.lp-belief-fill {
+    height: 100%;
+    border-radius: 4px;
+}
+
+.lp-belief-pct {
+    width: 28px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+}
+
+.lp-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 10px 0;
+    flex-wrap: wrap;
+}
+
+.lp-flow-step {
+    display: flex;
+    align-items: center;
+}
+
+.lp-flow-node {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+.lp-flow-node.hot {
+    background: var(--danger-soft);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.lp-flow-tag {
+    font-size: 9.5px;
+    font-weight: 600;
+}
+
+.lp-flow-arrow {
+    color: #6f8388;
+}
+
+.lp-checklist {
+    font-size: 13.5px;
+}
+
+.lp-topic {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13.5px;
+    color: var(--text);
+}
+
+.lp-topic-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--primary);
+}
+
+.lp-code {
+    margin: 0;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--text);
+    overflow-x: auto;
+}
+
+.lp-code-ln {
+    color: var(--muted);
+}
+
+.lp-code-kw {
+    color: var(--primary);
 }

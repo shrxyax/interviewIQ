@@ -9,17 +9,11 @@ export function LoadingState({ label = "Loading..." }) {
 export function ErrorState({ message = "Something went wrong.", onRetry }) {
   return (
     <div className="page-content">
-      <p className="spinner-text" style={{ color: "var(--danger)" }}>
+      <p className="spinner-text text-danger">
         {message}
       </p>
       {onRetry && (
-        <button
-          onClick={onRetry}
-          style={{
-            background: "var(--primary-soft)", color: "var(--primary)", border: "none",
-            borderRadius: 10, padding: "8px 16px", fontWeight: 600, fontSize: 13, alignSelf: "flex-start",
-          }}
-        >
+        <button onClick={onRetry} className="btn btn-sm btn-soft" style={{ alignSelf: "flex-start" }}>
           Try again
         </button>
       )}

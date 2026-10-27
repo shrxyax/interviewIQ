@@ -23,7 +23,28 @@ class Settings:
     )
 
     gemini_api_key: str | None = os.getenv("GEMINI_API_KEY")
-    gemini_model: str = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+    # Text models, tried in order: each has its own free-tier daily quota,
+    # so when one runs out requests move on to the next instead of failing.
+    gemini_models: list[str] = [
+        m.strip()
+        for m in os.getenv(
+            "GEMINI_MODELS",
+            f"{os.getenv('GEMINI_MODEL', 'gemini-3.5-flash')},gemini-3.5-flash-lite",
+        ).split(",")
+        if m.strip()
+    ]
+    gemini_model: str = gemini_models[0]
+    # Voice for reading interview questions aloud (browser speech is
+    # unreliable on some systems, so the backend renders real audio).
+    # Tried in order; each has its own (small) free-tier daily quota.
+    gemini_tts_models: list[str] = [
+        m.strip()
+        for m in os.getenv("GEMINI_TTS_MODELS", "gemini-3.8-flash-lite-tts,gemini-3.8-flash-tts").split(",")
+        if m.strip()
+    ]
+    gemini_tts_voice: str = os.getenv("GEMINI_TTS_VOICE", "Charon")
+    # Voice for the offline fallback (macOS `say -v`); empty = system default.
+    local_tts_voice: str = os.getenv("LOCAL_TTS_VOICE", "Samantha")
 
     jwt_secret: str = os.getenv("JWT_SECRET", "dev-only-change-me")
     jwt_algorithm: str = "HS256"

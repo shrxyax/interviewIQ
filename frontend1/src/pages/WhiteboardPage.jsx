@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ReactFlow, Background, Controls, Handle, Position,
-  addEdge, applyNodeChanges, applyEdgeChanges, MarkerType,
+  ReactFlow, Background, Controls,
+  addEdge, applyNodeChanges, applyEdgeChanges,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { ChevronLeft, Plus, Save, Activity, Zap, ShieldAlert, MessageSquareText, FlagTriangleRight } from "lucide-react";
@@ -12,40 +12,9 @@ import {
 } from "../services/whiteboard";
 import Card from "../components/shared/Card";
 import Badge from "../components/shared/Badge";
-
-function utilColor(u) {
-  if (u == null) return "var(--border)";
-  if (u >= 1) return "var(--danger)";
-  if (u >= 0.8) return "var(--warning)";
-  return "var(--success)";
-}
-
-function DesignNode({ data }) {
-  const m = data.metrics;
-  return (
-    <div
-      onClick={() => data.onSelect(data.id)}
-      style={{
-        padding: "10px 14px", borderRadius: 12, minWidth: 150, cursor: "pointer",
-        background: "var(--card)",
-        border: `2px solid ${m ? utilColor(m.utilisation) : "var(--border)"}`,
-        boxShadow: data.selected ? "0 0 0 2px var(--primary)" : "none",
-      }}
-    >
-      <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
-      <div style={{ fontSize: 10, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{data.type}</div>
-      <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4 }}>{data.label}</div>
-      <div style={{ fontSize: 10.5, color: "var(--muted)" }}>x{data.replicas}</div>
-      {m && (
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: utilColor(m.utilisation), marginTop: 4 }}>
-          {m.utilisation != null ? `${Math.round(m.utilisation * 100)}% util` : "—"}
-          {m.saturated && " · SATURATED"}
-        </div>
-      )}
-      <Handle type="source" position={Position.Right} style={{ opacity: 0 }} />
-    </div>
-  );
-}
+import DesignNode from "../components/DesignNode";
+import { flowToGraph, graphToFlow, newEdge, newNode, withParam } from "../services/designGraph";
+import "./WhiteboardPage.css";
 
 const nodeTypes = { design: DesignNode };
 
@@ -63,14 +32,14 @@ function PromptBrowser({ onSelect }) {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-        <div className="tab-row" style={{ marginBottom: 0 }}>
+      <div className="wb-browser-bar">
+        <div className="tab-row scroll">
           <button className={`tab-btn ${active === "all" ? "active" : ""}`} onClick={() => setActive("all")}>All</button>
           {subtopics.map((s) => (
             <button key={s.id} className={`tab-btn ${active === s.id ? "active" : ""}`} onClick={() => setActive(s.id)}>{s.name}</button>
           ))}
         </div>
-        <label style={{ fontSize: 12.5, color: "var(--muted)", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+        <label className="wb-sim-toggle">
           <input type="checkbox" checked={simOnly} onChange={(e) => setSimOnly(e.target.checked)} />
           Simulatable only
         </label>
@@ -78,13 +47,13 @@ function PromptBrowser({ onSelect }) {
 
       <div className="grid grid-3">
         {prompts.map((p) => (
-          <Card key={p.id} hoverable={p.simulatable} onClick={p.simulatable ? () => onSelect(p.id) : undefined} style={{ opacity: p.simulatable ? 1 : 0.6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          <Card key={p.id} hoverable={p.simulatable} onClick={p.simulatable ? () => onSelect(p.id) : undefined} className={p.simulatable ? "" : "wb-prompt-card disabled"}>
+            <div className="wb-prompt-badges">
               <Badge difficulty={p.difficulty}>{p.difficulty}</Badge>
               {p.simulatable && <Badge tone="info">Executable</Badge>}
             </div>
-            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{p.title}</div>
-            <p style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.5 }}>{p.scenario}</p>
+            <div className="wb-prompt-title">{p.title}</div>
+            <p className="wb-prompt-scenario">{p.scenario}</p>
           </Card>
         ))}
       </div>
@@ -129,58 +98,24 @@ function DesignWorkspace({ promptId, onBack }) {
   }, [promptId]);
 
   const loadGraph = (graph) => {
-    const nodes = graph.nodes.map((n, i) => ({
-      id: n.id,
-      type: "design",
-      position: n.position || { x: (i % 4) * 220, y: Math.floor(i / 4) * 140 },
-      data: { ...n, replicas: n.params?.replicas ?? 1, onSelect: setSelectedId },
-    }));
-    const edges = graph.edges.map((e) => ({
-      id: `${e.src}-${e.dst}`,
-      source: e.src,
-      target: e.dst,
-      label: e.fraction === "miss" ? "miss" : String(e.fraction),
-      style: { stroke: e.kind === "async" ? "var(--info)" : "var(--border)" },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "var(--muted)" },
-    }));
+    const { nodes, edges } = graphToFlow(graph, setSelectedId);
     setRfNodes(nodes);
     setRfEdges(edges);
     setAnalysis(null);
   };
 
-  const toGraphJson = useCallback(() => ({
-    nodes: rfNodes.map((n) => ({ id: n.id, type: n.data.type, label: n.data.label, params: n.data.params })),
-    edges: rfEdges.map((e) => ({
-      src: e.source, dst: e.target,
-      fraction: e.label === "miss" ? "miss" : parseFloat(e.label) || 1.0,
-      kind: e.style?.stroke === "var(--info)" ? "async" : "sync",
-    })),
-  }), [rfNodes, rfEdges]);
+  const toGraphJson = useCallback(() => flowToGraph(rfNodes, rfEdges), [rfNodes, rfEdges]);
 
   const onNodesChange = useCallback((changes) => setRfNodes((nds) => applyNodeChanges(changes, nds)), []);
   const onEdgesChange = useCallback((changes) => setRfEdges((eds) => applyEdgeChanges(changes, eds)), []);
-  const onConnect = useCallback((params) => setRfEdges((eds) => addEdge({
-    ...params,
-    label: "1.0",
-    style: { stroke: "var(--border)" },
-    markerEnd: { type: MarkerType.ArrowClosed, color: "var(--muted)" },
-  }, eds)), []);
+  const onConnect = useCallback((params) => setRfEdges((eds) => addEdge(newEdge(params), eds)), []);
 
   const addNode = () => {
-    const def = catalog.find((c) => c.id === addType);
-    const id = `${addType}_${Date.now().toString(36)}`;
-    setRfNodes((nds) => [
-      ...nds,
-      {
-        id, type: "design",
-        position: { x: 80 + Math.random() * 300, y: 80 + Math.random() * 240 },
-        data: { id, type: addType, label: def?.label || addType, params: { replicas: 1, ...(def?.defaults?.hit_ratio !== undefined ? { hit_ratio: def.defaults.hit_ratio } : {}) }, replicas: 1, onSelect: setSelectedId },
-      },
-    ]);
+    setRfNodes((nds) => [...nds, newNode(catalog, addType, setSelectedId)]);
   };
 
   const updateSelectedParam = (key, value) => {
-    setRfNodes((nds) => nds.map((n) => n.id === selectedId ? { ...n, data: { ...n.data, params: { ...n.data.params, [key]: value }, replicas: key === "replicas" ? value : n.data.replicas } } : n));
+    setRfNodes((nds) => withParam(nds, selectedId, key, value));
   };
 
   const deleteSelected = () => {
@@ -274,57 +209,57 @@ function DesignWorkspace({ promptId, onBack }) {
   if (report) {
     return (
       <div>
-        <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", display: "flex", alignItems: "center", gap: 6, marginBottom: 16 }}>
+        <button onClick={onBack} className="text-btn back-btn" style={{ marginBottom: 16 }}>
           <ChevronLeft size={16} /> Back to prompts
         </button>
-        <h2 style={{ fontSize: 20, marginBottom: 16 }}>Final Report — {session.prompt.title}</h2>
+        <h2 className="wb-report-title">Final Report — {session.prompt.title}</h2>
         <div className="grid grid-3">
-          <Card><div style={{ color: "var(--muted)", fontSize: 12 }}>SLOs Satisfied</div><div style={{ fontSize: 24, fontWeight: 700, color: report.slo_satisfied ? "var(--success)" : "var(--danger)" }}>{report.slo_satisfied ? "Yes" : "No"}</div></Card>
-          <Card><div style={{ color: "var(--muted)", fontSize: 12 }}>Resilience</div><div style={{ fontSize: 24, fontWeight: 700 }}>{report.resilience.resilience_pct}%</div></Card>
-          <Card><div style={{ color: "var(--muted)", fontSize: 12 }}>Cost Efficiency vs Reference</div><div style={{ fontSize: 24, fontWeight: 700 }}>{report.cost_efficiency ?? "—"}x</div></Card>
+          <Card><div className="stat-label">SLOs Satisfied</div><div className={`wb-report-value ${report.slo_satisfied ? "text-success" : "text-danger"}`}>{report.slo_satisfied ? "Yes" : "No"}</div></Card>
+          <Card><div className="stat-label">Resilience</div><div className="wb-report-value">{report.resilience.resilience_pct}%</div></Card>
+          <Card><div className="stat-label">Cost Efficiency vs Reference</div><div className="wb-report-value">{report.cost_efficiency ?? "—"}x</div></Card>
         </div>
-        <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 16 }}>{report.revisions} version(s) submitted.</p>
+        <p className="note" style={{ marginTop: 16 }}>{report.revisions} version(s) submitted.</p>
       </div>
     );
   }
 
   return (
     <div>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: "var(--muted)", display: "flex", alignItems: "center", gap: 6, marginBottom: 12 }}>
+      <button onClick={onBack} className="text-btn back-btn">
         <ChevronLeft size={16} /> All prompts
       </button>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
+      <div className="wb-header">
         <div>
-          <h2 style={{ fontSize: 19 }}>{session.prompt.title}</h2>
-          <p style={{ color: "var(--muted)", fontSize: 13, maxWidth: 560 }}>{session.prompt.scenario}</p>
+          <h2>{session.prompt.title}</h2>
+          <p>{session.prompt.scenario}</p>
         </div>
-        <div style={{ fontSize: 12, color: "var(--muted)", textAlign: "right" }}>
+        <div className="wb-requirements">
           peak {session.requirements.peak_rps.toLocaleString()} rps · p99 SLO {session.requirements.p99_slo_ms}ms
         </div>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: "2.2fr 1fr", gap: 16, alignItems: "start" }}>
+      <div className="grid grid-split">
         <div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-            <select value={addType} onChange={(e) => setAddType(e.target.value)} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 10px", fontSize: 12.5 }}>
+          <div className="wb-toolbar">
+            <select value={addType} onChange={(e) => setAddType(e.target.value)} className="field" aria-label="Component type">
               {catalog.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
-            <button onClick={addNode} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 12px", fontSize: 12.5, display: "flex", alignItems: "center", gap: 6 }}>
+            <button onClick={addNode} className="btn btn-secondary btn-sm">
               <Plus size={13} /> Add
             </button>
-            <button disabled={busy} onClick={saveAndAnalyze} style={{ background: "var(--primary)", border: "none", borderRadius: 8, color: "white", padding: "6px 14px", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+            <button disabled={busy} onClick={saveAndAnalyze} className="btn btn-primary btn-sm">
               <Save size={13} /> Save &amp; Analyze
             </button>
-            <button disabled={busy || !versionId} onClick={runSim} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 12px", fontSize: 12.5, display: "flex", alignItems: "center", gap: 6 }}>
+            <button disabled={busy || !versionId} onClick={runSim} className="btn btn-secondary btn-sm">
               <Activity size={13} /> Simulate
             </button>
-            <button disabled={busy || !versionId} onClick={runResilienceSuite} style={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 12px", fontSize: 12.5, display: "flex", alignItems: "center", gap: 6 }}>
+            <button disabled={busy || !versionId} onClick={runResilienceSuite} className="btn btn-secondary btn-sm">
               <ShieldAlert size={13} /> Resilience
             </button>
           </div>
 
-          <div style={{ height: 460, border: "1px solid var(--border)", borderRadius: 16, background: "var(--card)" }}>
+          <div className="flow-canvas wb-canvas">
             <ReactFlow
               nodes={nodesWithSelection} edges={rfEdges} nodeTypes={nodeTypes}
               onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}
@@ -336,16 +271,16 @@ function DesignWorkspace({ promptId, onBack }) {
           </div>
 
           {analysis && (
-            <Card style={{ marginTop: 14 }}>
-              <div style={{ display: "flex", gap: 24, marginBottom: 12, flexWrap: "wrap" }}>
-                <div><div style={{ fontSize: 11, color: "var(--muted)" }}>p99 latency</div><div style={{ fontWeight: 700 }}>{analysis.summary.end_to_end_latency_p99_ms ?? "—"} ms</div></div>
-                <div><div style={{ fontSize: 11, color: "var(--muted)" }}>Max sustainable RPS</div><div style={{ fontWeight: 700 }}>{analysis.summary.max_sustainable_rps ?? "—"}</div></div>
-                <div><div style={{ fontSize: 11, color: "var(--muted)" }}>Capacity runway</div><div style={{ fontWeight: 700 }}>{analysis.summary.capacity_runway_months ?? "—"} mo</div></div>
+            <Card className="wb-result-card">
+              <div className="metric-row" style={{ marginBottom: 12 }}>
+                <div><div className="metric-label">p99 latency</div><div className="metric-value">{analysis.summary.end_to_end_latency_p99_ms ?? "—"} ms</div></div>
+                <div><div className="metric-label">Max sustainable RPS</div><div className="metric-value">{analysis.summary.max_sustainable_rps ?? "—"}</div></div>
+                <div><div className="metric-label">Capacity runway</div><div className="metric-value">{analysis.summary.capacity_runway_months ?? "—"} mo</div></div>
               </div>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>Findings ({analysis.findings.length})</div>
-              {analysis.findings.length === 0 && <p style={{ fontSize: 13, color: "var(--success)" }}>No issues found — the design satisfies its requirements.</p>}
+              <div className="section-label">Findings ({analysis.findings.length})</div>
+              {analysis.findings.length === 0 && <p className="note text-success">No issues found — the design satisfies its requirements.</p>}
               {analysis.findings.map((f, i) => (
-                <div key={i} style={{ fontSize: 12.5, padding: "6px 0", borderBottom: "1px solid var(--border)", display: "flex", justifyContent: "space-between" }}>
+                <div key={i} className="list-row">
                   <span>{f.message}</span>
                   <Badge tone={f.severity >= 7 ? "danger" : "warning"}>{f.type}</Badge>
                 </div>
@@ -354,36 +289,36 @@ function DesignWorkspace({ promptId, onBack }) {
           )}
 
           {simResult && (
-            <Card style={{ marginTop: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>Discrete-Event Simulation</div>
-              <div style={{ display: "flex", gap: 24 }}>
-                <div><div style={{ fontSize: 11, color: "var(--muted)" }}>p50</div><div style={{ fontWeight: 700 }}>{simResult.end_to_end_ms.p50} ms</div></div>
-                <div><div style={{ fontSize: 11, color: "var(--muted)" }}>p95</div><div style={{ fontWeight: 700 }}>{simResult.end_to_end_ms.p95} ms</div></div>
-                <div><div style={{ fontSize: 11, color: "var(--muted)" }}>p99</div><div style={{ fontWeight: 700 }}>{simResult.end_to_end_ms.p99} ± {simResult.end_to_end_ms.p99_ci95} ms</div></div>
+            <Card className="wb-result-card">
+              <div className="section-label">Discrete-Event Simulation</div>
+              <div className="metric-row">
+                <div><div className="metric-label">p50</div><div className="metric-value">{simResult.end_to_end_ms.p50} ms</div></div>
+                <div><div className="metric-label">p95</div><div className="metric-value">{simResult.end_to_end_ms.p95} ms</div></div>
+                <div><div className="metric-label">p99</div><div className="metric-value">{simResult.end_to_end_ms.p99} ± {simResult.end_to_end_ms.p99_ci95} ms</div></div>
               </div>
             </Card>
           )}
 
           {scenarioResult && (
-            <Card style={{ marginTop: 14 }}>
+            <Card className="wb-result-card">
               {scenarioResult.resilienceResult ? (
                 <>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>
+                  <div className="section-label">
                     Resilience: {scenarioResult.resilienceResult.resilience_pct}% ({scenarioResult.resilienceResult.scenarios_survived}/{scenarioResult.resilienceResult.scenarios_run} scenarios survived)
                   </div>
                   {scenarioResult.resilienceResult.results.map((r, i) => (
-                    <div key={i} style={{ fontSize: 12, padding: "4px 0", color: r.survived ? "var(--success)" : "var(--danger)" }}>
+                    <div key={i} className={`wb-resilience-line ${r.survived ? "text-success" : "text-danger"}`}>
                       {r.survived ? "✓" : "✗"} {r.scenario.type}{r.scenario.node_id ? ` (${r.scenario.node_id})` : ""}
                     </div>
                   ))}
                 </>
               ) : (
                 <>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 8 }}>Scenario result</div>
+                  <div className="section-label">Scenario result</div>
                   {scenarioResult.findings.length === 0 ? (
-                    <p style={{ fontSize: 13, color: "var(--success)" }}>Design survives this scenario.</p>
+                    <p className="note text-success">Design survives this scenario.</p>
                   ) : scenarioResult.findings.map((f, i) => (
-                    <div key={i} style={{ fontSize: 12.5, padding: "4px 0" }}>{f.message}</div>
+                    <div key={i} className="wb-result-line">{f.message}</div>
                   ))}
                 </>
               )}
@@ -391,28 +326,28 @@ function DesignWorkspace({ promptId, onBack }) {
           )}
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className="wb-side">
           {selectedNode && (
             <Card>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 10 }}>{selectedNode.data.label}</div>
-              <label style={{ fontSize: 12, color: "var(--muted)" }}>Replicas</label>
+              <div className="section-label">{selectedNode.data.label}</div>
+              <label className="field-label" htmlFor="wb-replicas">Replicas</label>
               <input
-                type="number" min={0} value={selectedNode.data.params?.replicas ?? 1}
+                id="wb-replicas" type="number" min={0} value={selectedNode.data.params?.replicas ?? 1}
                 onChange={(e) => updateSelectedParam("replicas", parseInt(e.target.value) || 0)}
-                style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 10px", marginBottom: 10, marginTop: 4 }}
+                className="field wb-param"
               />
               {selectedNode.data.type === "cache" && (
                 <>
-                  <label style={{ fontSize: 12, color: "var(--muted)" }}>Hit ratio</label>
+                  <label className="field-label" htmlFor="wb-hit-ratio">Hit ratio</label>
                   <input
-                    type="number" step={0.05} min={0} max={1} value={selectedNode.data.params?.hit_ratio ?? 0.8}
+                    id="wb-hit-ratio" type="number" step={0.05} min={0} max={1} value={selectedNode.data.params?.hit_ratio ?? 0.8}
                     onChange={(e) => updateSelectedParam("hit_ratio", parseFloat(e.target.value))}
-                    style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 10px", marginBottom: 10, marginTop: 4 }}
+                    className="field wb-param"
                   />
                 </>
               )}
               {selectedNode.data.type !== "client" && (
-                <button onClick={deleteSelected} style={{ width: "100%", background: "var(--danger-soft)", border: "1px solid var(--danger)", color: "var(--danger)", borderRadius: 8, padding: "7px 0", fontSize: 12.5, fontWeight: 600 }}>
+                <button onClick={deleteSelected} className="btn btn-sm btn-block btn-tone-danger">
                   Delete component
                 </button>
               )}
@@ -420,42 +355,42 @@ function DesignWorkspace({ promptId, onBack }) {
           )}
 
           <Card>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 10 }}>Failure Scenario</div>
-            <select value={scenarioType} onChange={(e) => setScenarioType(e.target.value)} style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "7px 10px", marginBottom: 8, fontSize: 12.5 }}>
+            <div className="section-label">Failure Scenario</div>
+            <select value={scenarioType} onChange={(e) => setScenarioType(e.target.value)} className="field" style={{ marginBottom: 8 }} aria-label="Failure scenario">
               {SCENARIOS.map((s) => <option key={s.type} value={s.type}>{s.label}</option>)}
             </select>
             {SCENARIOS.find((s) => s.type === scenarioType)?.needsNode && (
-              <select value={scenarioNode} onChange={(e) => setScenarioNode(e.target.value)} style={{ width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "7px 10px", marginBottom: 8, fontSize: 12.5 }}>
+              <select value={scenarioNode} onChange={(e) => setScenarioNode(e.target.value)} className="field" style={{ marginBottom: 8 }} aria-label="Target node">
                 <option value="">Select a node...</option>
                 {rfNodes.filter((n) => n.data.type !== "client").map((n) => <option key={n.id} value={n.id}>{n.data.label}</option>)}
               </select>
             )}
-            <button disabled={busy} onClick={runScenario} style={{ width: "100%", background: "var(--warning-soft)", border: "1px solid var(--warning)", color: "var(--warning)", borderRadius: 8, padding: "7px 0", fontSize: 12.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <button disabled={busy} onClick={runScenario} className="btn btn-sm btn-block btn-tone-warning">
               <Zap size={13} /> Run scenario
             </button>
           </Card>
 
           <Card>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+            <div className="section-label with-icon">
               <MessageSquareText size={13} /> Interviewer
             </div>
-            <div style={{ maxHeight: 160, overflowY: "auto", marginBottom: 8 }}>
+            <div className="wb-dialogue">
               {dialogue.map((d, i) => (
-                <div key={i} style={{ fontSize: 12.5, marginBottom: 8, color: d.role === "interviewer" ? "var(--text)" : "var(--primary)" }}>
+                <div key={i} className={`wb-dialogue-line ${d.role === "interviewer" ? "" : "candidate"}`}>
                   <strong>{d.role === "interviewer" ? "Interviewer: " : "You: "}</strong>{d.text}
                 </div>
               ))}
             </div>
-            <button onClick={askInterviewer} style={{ width: "100%", background: "var(--card-hover)", border: "1px solid var(--border)", color: "var(--text)", borderRadius: 8, padding: "7px 0", fontSize: 12.5, marginBottom: 8 }}>
+            <button onClick={askInterviewer} className="btn btn-sm btn-block btn-tone-neutral" style={{ marginBottom: 8 }}>
               Ask next question
             </button>
-            <div style={{ display: "flex", gap: 6 }}>
-              <input value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Your response..." style={{ flex: 1, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", padding: "6px 10px", fontSize: 12.5 }} />
-              <button onClick={sendReply} style={{ background: "var(--primary)", border: "none", color: "white", borderRadius: 8, padding: "6px 12px", fontSize: 12.5 }}>Send</button>
+            <div className="row" style={{ gap: 6 }}>
+              <input value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Your response..." className="field" style={{ flex: 1 }} aria-label="Your response" />
+              <button onClick={sendReply} className="btn btn-primary btn-sm">Send</button>
             </div>
           </Card>
 
-          <button onClick={finish} style={{ background: "var(--success-soft)", border: "1px solid var(--success)", color: "var(--success)", borderRadius: 10, padding: "10px 0", fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <button onClick={finish} className="btn btn-block btn-tone-success">
             <FlagTriangleRight size={14} /> Finish &amp; Get Report
           </button>
         </div>

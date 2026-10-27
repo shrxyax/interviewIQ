@@ -7,6 +7,7 @@ import { Send, RotateCcw, Info } from "lucide-react";
 import { getConceptGraph, startMktSession, answerMktTurn } from "../services/mkt";
 import Card from "../components/shared/Card";
 import ProgressBar from "../components/shared/ProgressBar";
+import "./MktPage.css";
 
 const STATE_COLOR = { robust: "var(--success)", memorised: "var(--warning)", misconceived: "var(--danger)", absent: "var(--muted)" };
 const STATE_LABEL = { robust: "Robust", memorised: "Memorised", misconceived: "Misconceived", absent: "Absent" };
@@ -21,22 +22,19 @@ const PROBE_LABEL = {
 function ConceptNode({ data }) {
   return (
     <div
-      style={{
-        padding: "10px 14px", borderRadius: 12, minWidth: 150,
-        background: "var(--card)",
-        border: `1.5px solid ${data.observations > 0 ? STATE_COLOR[data.most_likely] : "var(--border)"}`,
-      }}
+      className="mkt-node"
+      style={{ borderColor: data.observations > 0 ? STATE_COLOR[data.most_likely] : undefined }}
     >
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
-      <div style={{ fontWeight: 600, fontSize: 12.5, marginBottom: 4 }}>{data.name}</div>
+      <Handle type="target" position={Position.Top} className="flow-handle" />
+      <div className="mkt-node-name">{data.name}</div>
       {data.observations > 0 ? (
-        <div style={{ fontSize: 10.5, color: STATE_COLOR[data.most_likely], fontWeight: 700 }}>
+        <div className="mkt-node-state" style={{ color: STATE_COLOR[data.most_likely] }}>
           {STATE_LABEL[data.most_likely]} &middot; {Math.round(data.confidence * 100)}%
         </div>
       ) : (
-        <div style={{ fontSize: 10.5, color: "var(--muted)", fontWeight: 600 }}>Not yet tested</div>
+        <div className="mkt-node-state untested">Not yet tested</div>
       )}
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} className="flow-handle" />
     </div>
   );
 }
@@ -92,7 +90,7 @@ function ConceptMap({ graph }) {
   }, [graph]);
 
   return (
-    <div style={{ height: 420, border: "1px solid var(--border)", borderRadius: 16, background: "var(--card)" }}>
+    <div className="flow-canvas mkt-canvas">
       <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes} fitView proOptions={{ hideAttribution: true }}>
         <Background color="var(--border)" gap={20} />
       </ReactFlow>
@@ -102,12 +100,12 @@ function ConceptMap({ graph }) {
 
 function BeliefBars({ belief }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+    <div className="belief-bars">
       {["absent", "memorised", "misconceived", "robust"].map((s) => (
-        <div key={s} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ width: 80, fontSize: 11, color: "var(--muted)" }}>{STATE_LABEL[s]}</span>
+        <div key={s} className="belief-row">
+          <span className="belief-label">{STATE_LABEL[s]}</span>
           <ProgressBar value={(belief?.[s] || 0) * 100} max={100} height={6} color={STATE_COLOR[s]} />
-          <span style={{ width: 36, fontSize: 11, color: "var(--muted)", textAlign: "right" }}>
+          <span className="belief-pct">
             {Math.round((belief?.[s] || 0) * 100)}%
           </span>
         </div>
@@ -184,16 +182,16 @@ export default function MktPage() {
       {!session && !report && (
         <>
           <ConceptMap graph={graph} />
-          <div style={{ marginTop: 20, display: "flex", gap: 12, alignItems: "center" }}>
+          <div className="row mkt-start-row">
             <button
               disabled={busy}
               onClick={() => startSession(10)}
-              style={{ background: "var(--primary)", color: "white", border: "none", borderRadius: 12, padding: "12px 24px", fontWeight: 700, fontSize: 14 }}
+              className="btn btn-primary btn-lg"
             >
               {selectedConcepts ? `Probe this concept` : "Start a Probing Session (10 probes)"}
             </button>
             {selectedConcepts && (
-              <button onClick={() => setSelectedConcepts(null)} style={{ background: "none", border: "none", color: "var(--muted)", fontSize: 13 }}>
+              <button onClick={() => setSelectedConcepts(null)} className="text-btn">
                 Clear concept filter
               </button>
             )}
@@ -202,48 +200,43 @@ export default function MktPage() {
       )}
 
       {session && (
-        <div className="grid grid-2" style={{ alignItems: "start", marginTop: 8 }}>
+        <div className="grid grid-2 mkt-session">
           <div>
             <Card>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--primary)", textTransform: "uppercase" }}>
+              <div className="row-between" style={{ marginBottom: 10 }}>
+                <span className="section-label mkt-probe-type">
                   {PROBE_LABEL[session.turn.probe_type]}
                 </span>
-                <span style={{ fontSize: 12, color: "var(--muted)" }}>{session.turn.concept_name}</span>
+                <span className="stat-label">{session.turn.concept_name}</span>
               </div>
-              <p data-testid="probe-question" style={{ fontSize: 17, fontWeight: 500, lineHeight: 1.6, marginBottom: 20 }}>{session.turn.question}</p>
+              <p data-testid="probe-question" className="mkt-question">{session.turn.question}</p>
               <textarea
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="Type your answer..."
                 rows={6}
-                style={{
-                  width: "100%", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 12,
-                  padding: 14, color: "var(--text)", fontSize: 14, resize: "vertical", outline: "none",
-                }}
+                className="field mkt-answer"
+                aria-label="Your answer"
               />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12 }}>
-                <button onClick={() => setShowWhy((v) => !v)} style={{ background: "none", border: "none", color: "var(--muted)", display: "flex", alignItems: "center", gap: 6, fontSize: 12.5 }}>
+              <div className="row-between" style={{ marginTop: 12 }}>
+                <button onClick={() => setShowWhy((v) => !v)} className="text-btn" aria-expanded={showWhy}>
                   <Info size={14} /> Why this question?
                 </button>
                 <button
                   disabled={busy || !answer.trim()}
                   onClick={submitAnswer}
-                  style={{
-                    background: "var(--primary)", color: "white", border: "none", borderRadius: 10,
-                    padding: "10px 20px", fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", gap: 8,
-                    opacity: busy || !answer.trim() ? 0.6 : 1,
-                  }}
+                  className="btn btn-primary"
+                  style={{ padding: "10px 20px" }}
                 >
                   <Send size={14} /> Submit
                 </button>
               </div>
 
               {showWhy && (
-                <div style={{ marginTop: 14, padding: 12, background: "var(--bg)", borderRadius: 10, fontSize: 12.5, color: "var(--muted)" }}>
+                <div className="mkt-why">
                   This probe was chosen because it maximises expected information gain (EIG ={" "}
-                  <strong style={{ color: "var(--text)" }}>{session.turn.eig}</strong> bits) about{" "}
-                  <strong style={{ color: "var(--text)" }}>{session.turn.concept_name}</strong>, given your current
+                  <strong className="text-strong">{session.turn.eig}</strong> bits) about{" "}
+                  <strong className="text-strong">{session.turn.concept_name}</strong>, given your current
                   belief distribution below.
                 </div>
               )}
@@ -251,17 +244,17 @@ export default function MktPage() {
 
             {lastResult && (
               <Card style={{ marginTop: 16, borderColor: STATE_COLOR[["absent", "memorised", "misconceived", "robust"][lastResult.belief_after.indexOf(Math.max(...lastResult.belief_after))]] }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", marginBottom: 6 }}>
+                <div className="section-label" style={{ marginBottom: 6 }}>
                   Previous outcome: {lastResult.outcome.replace(/_/g, " ")}
                 </div>
-                <p style={{ fontSize: 13, color: "var(--muted)" }}>{lastResult.reasons.join(" · ")}</p>
+                <p className="note">{lastResult.reasons.join(" · ")}</p>
               </Card>
             )}
           </div>
 
           <div>
             <Card>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
+              <div className="mkt-belief-title">
                 Current belief: {session.turn.concept_name}
               </div>
               <BeliefBars belief={currentBelief} />
@@ -271,30 +264,30 @@ export default function MktPage() {
       )}
 
       {report && (
-        <div style={{ marginTop: 8 }}>
+        <div className="mkt-report">
           <div className="grid grid-3" style={{ marginBottom: 20 }}>
             <Card>
-              <div style={{ color: "var(--muted)", fontSize: 12 }}>Conventional Score (base answers only)</div>
-              <div style={{ fontSize: 26, fontWeight: 700, marginTop: 6 }}>
+              <div className="stat-label">Conventional Score (base answers only)</div>
+              <div className="stat-value">
                 {report.conventional_score !== null ? `${Math.round(report.conventional_score * 100)}%` : "--"}
               </div>
             </Card>
             <Card>
-              <div style={{ color: "var(--muted)", fontSize: 12 }}>Mean Robustness Index</div>
-              <div style={{ fontSize: 26, fontWeight: 700, marginTop: 6, color: "var(--primary)" }}>
+              <div className="stat-label">Mean Robustness Index</div>
+              <div className="stat-value" style={{ color: "var(--primary)" }}>
                 {report.mean_robustness_index !== null ? `${Math.round(report.mean_robustness_index * 100)}%` : "--"}
               </div>
             </Card>
             <Card>
-              <div style={{ color: "var(--muted)", fontSize: 12 }}>Capitulations under pushback</div>
-              <div style={{ fontSize: 26, fontWeight: 700, marginTop: 6 }}>{report.capitulations}</div>
+              <div className="stat-label">Capitulations under pushback</div>
+              <div className="stat-value">{report.capitulations}</div>
             </Card>
           </div>
 
           {report.misconceptions.length > 0 && (
             <Card style={{ marginBottom: 20, borderColor: "var(--danger)" }}>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "var(--danger)", marginBottom: 8 }}>Misconceptions detected</div>
-              <ul style={{ paddingLeft: 18, fontSize: 13, color: "var(--muted)" }}>
+              <div className="mkt-misconceptions-title">Misconceptions detected</div>
+              <ul className="note mkt-misconceptions">
                 {report.misconceptions.map((m) => <li key={m}>{m}</li>)}
               </ul>
             </Card>
@@ -303,9 +296,9 @@ export default function MktPage() {
           <div className="grid grid-3">
             {report.concepts.filter((c) => c.probed).map((c) => (
               <Card key={c.concept_id}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>{c.name}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: STATE_COLOR[c.most_likely] }}>{STATE_LABEL[c.most_likely]}</span>
+                <div className="concept-head">
+                  <span className="concept-name">{c.name}</span>
+                  <span className="concept-state" style={{ color: STATE_COLOR[c.most_likely] }}>{STATE_LABEL[c.most_likely]}</span>
                 </div>
                 <BeliefBars belief={c.belief} />
               </Card>
@@ -314,7 +307,7 @@ export default function MktPage() {
 
           <button
             onClick={() => startSession(10)}
-            style={{ marginTop: 20, background: "var(--primary)", color: "white", border: "none", borderRadius: 12, padding: "12px 24px", fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 8 }}
+            className="btn btn-primary btn-lg" style={{ marginTop: 20 }}
           >
             <RotateCcw size={15} /> Run another session
           </button>

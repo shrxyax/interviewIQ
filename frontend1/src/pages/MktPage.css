@@ -1,0 +1,95 @@
+/* Metamorphic Knowledge Testing: concept map, probe session, report. */
+
+.mkt-node{
+    padding:10px 14px;
+    border-radius:12px;
+    min-width:150px;
+    background:var(--card);
+    border:1.5px solid var(--border);
+}
+
+.mkt-node-name{
+    font-weight:600;
+    font-size:12.5px;
+    margin-bottom:4px;
+}
+
+.mkt-node-state{
+    font-size:10.5px;
+    font-weight:700;
+}
+
+.mkt-node-state.untested{
+    color:var(--muted);
+    font-weight:600;
+}
+
+.mkt-canvas{
+    height:420px;
+}
+
+.mkt-start-row{
+    margin-top:20px;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.mkt-session{
+    align-items:start;
+    margin-top:8px;
+}
+
+.mkt-probe-type{
+    color:var(--primary);
+    margin-bottom:0;
+}
+
+.mkt-question{
+    font-size:17px;
+    font-weight:500;
+    line-height:1.6;
+    margin-bottom:20px;
+}
+
+.mkt-answer{
+    border-radius:12px;
+    padding:14px;
+    font-size:14px;
+    resize:vertical;
+}
+
+.mkt-why{
+    margin-top:14px;
+    padding:12px;
+    background:var(--bg);
+    border-radius:10px;
+    font-size:12.5px;
+    color:var(--muted);
+}
+
+.mkt-belief-title{
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:10px;
+}
+
+.mkt-report{
+    margin-top:8px;
+}
+
+.mkt-misconceptions-title{
+    font-weight:700;
+    font-size:13px;
+    color:var(--danger);
+    margin-bottom:8px;
+}
+
+.mkt-misconceptions{
+    padding-left:18px;
+}
+
+@media (max-width:700px){
+    .mkt-canvas{
+        height:340px;
+    }
+}

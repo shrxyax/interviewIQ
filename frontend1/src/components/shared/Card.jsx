@@ -1,22 +1,24 @@
-export default function Card({ children, style, hoverable, onClick, as: As = "div" }) {
+export default function Card({ children, style, className = "", hoverable, onClick, as: As = "div" }) {
+  // Clickable cards behave like buttons for keyboard users too.
+  const interactive = onClick
+    ? {
+        role: "button",
+        tabIndex: 0,
+        onKeyDown: (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick(e);
+          }
+        },
+      }
+    : {};
+
   return (
     <As
       onClick={onClick}
-      style={{
-        background: "var(--card)",
-        border: "1px solid var(--border)",
-        borderRadius: 16,
-        padding: 20,
-        cursor: onClick ? "pointer" : "default",
-        transition: "border-color 0.2s ease, background 0.2s ease",
-        ...style,
-      }}
-      onMouseEnter={(e) => {
-        if (hoverable) e.currentTarget.style.borderColor = "var(--primary)";
-      }}
-      onMouseLeave={(e) => {
-        if (hoverable) e.currentTarget.style.borderColor = "var(--border)";
-      }}
+      className={`card ${hoverable ? "card-hoverable" : ""} ${onClick ? "card-clickable" : ""} ${className}`.trim()}
+      style={style}
+      {...interactive}
     >
       {children}
     </As>

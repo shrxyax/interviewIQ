@@ -311,3 +311,61 @@ def test_resume_grounded_probe_generation_falls_back_silently_on_llm_error(monke
 
     monkeypatch.setattr("app.core.llm_gateway.generate_structured", _FakeStructuredLLM(RuntimeError("quota exhausted")))
     assert generate_resume_grounded_probe(concept, "base", "some resume text") is None
+
+
+# --------------------------------------------------------------------------
+# MKT as the fallback question source when the LLM is unavailable
+# --------------------------------------------------------------------------
+
+def _llm_down_evaluate_answer(context, history, question, answer):
+    # What _default_evaluate_answer returns when the LLM call fails.
+    return TurnEvaluation(score=5, evaluation="Detailed evaluation was unavailable.", next_question="")
+
+
+LLM_DOWN_INTERVIEW_DEPS = InterviewDeps(
+    generate_first_question=_fake_generate_first_question,
+    evaluate_answer=_llm_down_evaluate_answer,
+    generate_report=_fake_generate_report,
+)
+
+
+@pytest.fixture
+def llm_down_client(client):
+    app.dependency_overrides[get_interview_deps] = lambda: LLM_DOWN_INTERVIEW_DEPS
+    yield client
+    app.dependency_overrides[get_interview_deps] = lambda: FAKE_INTERVIEW_DEPS
+
+
+def _questions_for(client, headers, interview_type, turns):
+    context_id = _create_context(client, headers, interview_type=interview_type, num_questions=turns + 1)
+    session = client.post("/interview/sessions", json={"context_id": context_id}, headers=headers).json()
+
+    for i in range(turns):
+        _answer_turn(client, headers, session["session_id"], f"Answer number {i}.")
+
+    with SessionLocal() as db:
+        return db.query(InterviewTurn).filter_by(session_id=session["session_id"]).order_by(InterviewTurn.seq).all()
+
+
+@pytest.mark.parametrize("interview_type", ["custom", "mixed", "technical"])
+def test_without_the_llm_every_later_turn_is_a_distinct_mkt_probe(llm_down_client, interview_type):
+    headers = _register(llm_down_client, f"llm_down_{interview_type}")
+    turns = _questions_for(llm_down_client, headers, interview_type, turns=5)
+
+    # Technical and mixed interviews also have one coding round.
+    expected_coding = 1 if interview_type in ("mixed", "technical") else 0
+    assert sum(t.source == "coding" for t in turns) == expected_coding
+
+    later = [t for t in turns[1:] if t.source != "coding"]
+    assert [t.source for t in later] == ["mkt"] * (5 - expected_coding)
+    assert len({t.question for t in later}) == len(later)
+    assert all(t.mkt_concept_id and t.mkt_probe_type for t in later)
+
+
+def test_without_the_llm_hr_questions_come_from_the_bank_without_repeats(llm_down_client):
+    headers = _register(llm_down_client, "llm_down_hr")
+    turns = _questions_for(llm_down_client, headers, "hr", turns=5)
+
+    later = turns[1:]
+    assert [t.source for t in later] == ["llm"] * 5
+    assert len({t.question for t in later}) == 5

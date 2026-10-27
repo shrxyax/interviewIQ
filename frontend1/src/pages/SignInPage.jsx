@@ -24,11 +24,25 @@ export default function SignInPage() {
       } else {
         await register(username.trim(), password);
       }
-      navigate("/");
+      // Signing in means they're past the intro. Hard-navigate so App
+      // re-reads onboarding state and every page refetches as this user.
+      localStorage.setItem("iq_onboarded", "true");
+      window.location.assign("/");
+      return;
     } catch (err) {
+      // FastAPI returns `detail` as a list of objects for 422 validation
+      // errors; rendering that directly would crash the page.
+      const detail = err.response?.data?.detail;
       setError(
-        err.response?.data?.detail ||
-          (mode === "signin" ? "Invalid username or password." : "Could not create that account.")
+        typeof detail === "string"
+          ? detail
+          : Array.isArray(detail)
+          ? "Username must be at least 3 characters and password at least 6."
+          : err.response
+          ? mode === "signin"
+            ? "Invalid username or password."
+            : "Could not create that account."
+          : "Can't reach the server. Is the backend running on port 8000?"
       );
     } finally {
       setSubmitting(false);
@@ -48,7 +62,7 @@ export default function SignInPage() {
 
       <div className="auth-card">
         <div className="auth-mark">
-          <Sparkles size={22} color="white" />
+          <Sparkles size={22} color="var(--on-primary)" />
         </div>
 
         <div className="auth-switch">

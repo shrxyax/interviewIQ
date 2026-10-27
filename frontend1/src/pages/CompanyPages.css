@@ -1,0 +1,48 @@
+/* Company detail: readiness score, breakdown and recommended plan. */
+
+.company-readiness{
+    font-size:30px;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+}
+
+.company-section-title{
+    font-size:16px;
+    margin-bottom:12px;
+}
+
+.company-breakdown-item{
+    margin-bottom:14px;
+}
+
+.company-breakdown-item:last-child{
+    margin-bottom:0;
+}
+
+.company-breakdown-head{
+    font-size:13px;
+    margin-bottom:4px;
+}
+
+.company-plan-focus{
+    font-weight:600;
+    font-size:14px;
+}
+
+.company-plan-action{
+    color:var(--muted);
+    font-size:12.5px;
+    margin-top:4px;
+}
+
+.company-plan-reason{
+    color:var(--muted);
+    font-size:11.5px;
+    margin-top:6px;
+}
+
+.company-plan-go{
+    padding:8px;
+    border-radius:8px;
+    flex-shrink:0;
+}

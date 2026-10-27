@@ -34,6 +34,14 @@ def core_cs(db: Session = Depends(get_db)):
     return service.get_core_cs(db)
 
 
+@router.get("/sheets/core-cs/notes/{note_id}")
+def core_cs_note(note_id: str, db: Session = Depends(get_db)):
+    try:
+        return service.get_core_cs_note(db, note_id)
+    except ContentError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
 @router.get("/companies")
 def companies(db: Session = Depends(get_db)):
     return service.list_companies(db)

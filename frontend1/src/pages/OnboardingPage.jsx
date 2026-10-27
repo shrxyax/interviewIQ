@@ -27,7 +27,7 @@ const TABS = [
       "An AI interviewer that listens, adapts, and follows up based on your resume and target role — not a static list of questions.",
     bullets: ["Voice-based question & answer", "Resume-grounded follow-ups", "Full session report at the end"],
     preview: (
-      <div className="landing-mock-window" style={{ margin: 0, maxWidth: "none" }}>
+      <div className="landing-mock-window inline">
         <div className="landing-mock-avatar">AI</div>
         <div className="landing-mock-status">
           <Volume2 size={13} /> AI Interviewer is speaking
@@ -48,19 +48,19 @@ const TABS = [
       "We don't just grade one answer. We transform the question — a changed constraint, an inversion, interviewer pushback — and check whether your understanding survives.",
     bullets: ["Paraphrase, constraint & pushback probes", "Bayesian belief tracking per concept", "Measures robustness, not just correctness"],
     preview: (
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="lp-beliefs">
         {[
           { label: "Robust", value: 72, color: "var(--success)" },
           { label: "Memorised", value: 18, color: "var(--warning)" },
           { label: "Misconceived", value: 6, color: "var(--danger)" },
           { label: "Absent", value: 4, color: "var(--muted)" },
         ].map((s) => (
-          <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 86, fontSize: 11.5, color: "#9e977f" }}>{s.label}</span>
-            <div style={{ flex: 1, height: 6, borderRadius: 4, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-              <div style={{ width: `${s.value}%`, height: "100%", background: s.color, borderRadius: 4 }} />
+          <div key={s.label} className="lp-belief">
+            <span className="lp-belief-label">{s.label}</span>
+            <div className="lp-belief-track">
+              <div className="lp-belief-fill" style={{ width: `${s.value}%`, background: s.color }} />
             </div>
-            <span style={{ width: 28, fontSize: 11, color: "#9e977f", textAlign: "right" }}>{s.value}%</span>
+            <span className="lp-belief-pct">{s.value}%</span>
           </div>
         ))}
       </div>
@@ -75,21 +75,14 @@ const TABS = [
       "Draw your architecture and actually run it: queueing theory, failure injection, and bottleneck detection — so feedback comes from simulation, not an LLM's opinion.",
     bullets: ["Queueing-theory simulation", "Failure injection", "Automated bottleneck detection"],
     preview: (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, padding: "10px 0" }}>
+      <div className="lp-flow">
         {["API", "Queue", "DB"].map((n, i) => (
-          <div key={n} style={{ display: "flex", alignItems: "center" }}>
-            <div
-              style={{
-                padding: "10px 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700,
-                background: i === 1 ? "rgba(239,68,68,0.15)" : "rgba(255,255,255,0.06)",
-                border: `1px solid ${i === 1 ? "#ef4444" : "rgba(255,255,255,0.12)"}`,
-                color: i === 1 ? "#f3a0a0" : "#f1ede2",
-              }}
-            >
+          <div key={n} className="lp-flow-step">
+            <div className={`lp-flow-node ${i === 1 ? "hot" : ""}`}>
               {n}
-              {i === 1 && <div style={{ fontSize: 9.5, color: "#f3a0a0", fontWeight: 600 }}>bottleneck</div>}
+              {i === 1 && <div className="lp-flow-tag">bottleneck</div>}
             </div>
-            {i < 2 && <ChevronsRight size={16} color="#8a8468" />}
+            {i < 2 && <ChevronsRight size={16} className="lp-flow-arrow" />}
           </div>
         ))}
       </div>
@@ -103,7 +96,7 @@ const TABS = [
     description: "206 problems across 20 topics, ordered so each one builds on the last — tracked against your real progress.",
     bullets: ["206 problems, 20 topics", "Progress tracked per problem", "Linked to your knowledge profile"],
     preview: (
-      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      <div className="lp-list" style={{ gap: 9 }}>
         {[
           { label: "Two Sum", done: true },
           { label: "Valid Parentheses", done: true },
@@ -111,7 +104,7 @@ const TABS = [
           { label: "House Robber", done: false },
           { label: "Invert Binary Tree", done: false },
         ].map((item) => (
-          <div key={item.label} className={`landing-checklist-item ${item.done ? "done" : ""}`} style={{ fontSize: 13.5 }}>
+          <div key={item.label} className={`landing-checklist-item lp-checklist ${item.done ? "done" : ""}`}>
             {item.done ? <CheckCircle2 size={15} /> : <Circle size={15} />}
             {item.label}
           </div>
@@ -127,10 +120,10 @@ const TABS = [
     description: "OS, DBMS, networks and the other fundamentals interviewers actually probe — concise notes, not textbooks.",
     bullets: ["Short, interview-focused notes", "Linked to knowledge-testing concepts", "Covers OS, DBMS, networks & more"],
     preview: (
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="lp-list">
         {["Process vs Thread", "ACID Properties", "TCP vs UDP", "Indexing & B-Trees"].map((t) => (
-          <div key={t} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13.5, color: "#f1ede2" }}>
-            <div style={{ width: 5, height: 5, borderRadius: 3, background: "var(--primary)" }} />
+          <div key={t} className="lp-topic">
+            <div className="lp-topic-dot" />
             {t}
           </div>
         ))}
@@ -145,13 +138,13 @@ const TABS = [
     description: "Write and run real code against hidden test cases, right in the browser — no setup required.",
     bullets: ["Python, JavaScript, C++, Java", "Runs against hidden test cases", "No local setup"],
     preview: (
-      <pre style={{ margin: 0, fontFamily: "monospace", fontSize: 12.5, lineHeight: 1.7, color: "#f1ede2" }}>
-        <span style={{ color: "#9e977f" }}>1</span>{"  "}
-        <span style={{ color: "#9db892" }}>def</span> twoSum(nums, target):{"\n"}
-        <span style={{ color: "#9e977f" }}>2</span>{"  "}  seen = {"{}"}{"\n"}
-        <span style={{ color: "#9e977f" }}>3</span>{"  "}  <span style={{ color: "#9db892" }}>for</span> i, n <span style={{ color: "#9db892" }}>in</span> enumerate(nums):{"\n"}
-        <span style={{ color: "#9e977f" }}>4</span>{"  "}    <span style={{ color: "#9db892" }}>if</span> target - n <span style={{ color: "#9db892" }}>in</span> seen:{"\n"}
-        <span style={{ color: "#9e977f" }}>5</span>{"  "}      <span style={{ color: "#9db892" }}>return</span> [seen[target - n], i]
+      <pre className="lp-code">
+        <span className="lp-code-ln">1</span>{"  "}
+        <span className="lp-code-kw">def</span> twoSum(nums, target):{"\n"}
+        <span className="lp-code-ln">2</span>{"  "}  seen = {"{}"}{"\n"}
+        <span className="lp-code-ln">3</span>{"  "}  <span className="lp-code-kw">for</span> i, n <span className="lp-code-kw">in</span> enumerate(nums):{"\n"}
+        <span className="lp-code-ln">4</span>{"  "}    <span className="lp-code-kw">if</span> target - n <span className="lp-code-kw">in</span> seen:{"\n"}
+        <span className="lp-code-ln">5</span>{"  "}      <span className="lp-code-kw">return</span> [seen[target - n], i]
       </pre>
     ),
   },
@@ -192,7 +185,7 @@ export default function OnboardingPage({ onComplete }) {
             Sign In
           </button>
           <button className="landing-nav-cta" onClick={onComplete}>
-            Get Started <ArrowRight size={14} style={{ marginLeft: 4 }} />
+            Get Started <ArrowRight size={14} className="icon-after" />
           </button>
         </div>
       </nav>

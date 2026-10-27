@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -30,12 +30,27 @@ class StartSessionRequest(BaseModel):
     context_id: str
 
 
+# Answers can be code (the coding round), hence the generous limit.
+MAX_ANSWER_CHARS = 20000
+
+
 class AnswerRequest(BaseModel):
-    answer: str = Field(min_length=1, max_length=8000)
+    answer: str = Field(min_length=1, max_length=MAX_ANSWER_CHARS)
     # Client-computed MediaPipe blendshape-derived affect proxies for this
     # turn's answer window (see frontend1/src/services/faceDetection.js);
     # None when the camera was unavailable/denied. Never raw video/frames.
     emotion_signal: dict | None = None
+
+
+class EndSessionRequest(BaseModel):
+    # The open question's answer in progress, if any; scored before the
+    # report is built so it isn't lost.
+    answer: str | None = Field(default=None, max_length=MAX_ANSWER_CHARS)
+    emotion_signal: dict | None = None
+
+
+class RunCodeRequest(BaseModel):
+    code: str = Field(max_length=MAX_ANSWER_CHARS)
 
 
 class ProctoringEventRequest(BaseModel):
@@ -109,6 +124,51 @@ def answer_session(
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@router.post("/sessions/{session_id}/code/run")
+def run_code(
+    session_id: str,
+    body: RunCodeRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_user_or_guest),
+):
+    try:
+        return service.run_code(db, user, session_id, body.code)
+    except InterviewSessionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+class AnalyzeDesignRequest(BaseModel):
+    graph: dict
+
+
+@router.post("/sessions/{session_id}/design/analyze")
+def analyze_design(
+    session_id: str,
+    body: AnalyzeDesignRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_user_or_guest),
+):
+    try:
+        return service.analyze_design(db, user, session_id, body.graph)
+    except InterviewSessionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@router.post("/sessions/{session_id}/end")
+def end_session(
+    session_id: str,
+    body: EndSessionRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_user_or_guest),
+    deps: InterviewDeps = Depends(get_interview_deps),
+    mkt_deps: MKTDeps = Depends(get_mkt_deps),
+):
+    try:
+        return service.end_session(db, user, session_id, deps, body.answer, mkt_deps, body.emotion_signal)
+    except InterviewSessionError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
 @router.post("/sessions/{session_id}/proctoring-event")
 def report_proctoring_event(
     session_id: str,
@@ -120,6 +180,25 @@ def report_proctoring_event(
         return service.record_proctoring_event(db, user, session_id, body.event_type)
     except InterviewSessionError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+
+
+@router.get("/sessions/{session_id}/question-audio")
+def read_question_audio(
+    session_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_user_or_guest),
+):
+    try:
+        audio, mime = service.current_question_audio(db, user, session_id)
+    except InterviewSessionError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception:
+        # Speech is best-effort: the client falls back to browser speech.
+        raise HTTPException(status_code=503, detail="Question audio is unavailable right now.")
+
+    # The server already caches rendered audio; don't let the browser keep a
+    # stale clip for this URL.
+    return Response(content=audio, media_type=mime, headers={"Cache-Control": "no-store"})
 
 
 @router.get("/sessions/{session_id}/evidence")

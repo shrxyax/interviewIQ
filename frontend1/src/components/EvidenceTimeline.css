@@ -1,0 +1,64 @@
+/* Evidence trail shown in the interview report. */
+
+.evidence-timeline{
+    padding:4px 0 20px;
+}
+
+.evidence-status{
+    padding:20px 0;
+}
+
+.evidence-icon{
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--card-hover);
+    flex-shrink:0;
+}
+
+.evidence-turn{
+    font-size:12px;
+    color:var(--muted);
+    font-weight:600;
+}
+
+.evidence-score{
+    font-size:13px;
+    font-weight:700;
+}
+
+.evidence-description{
+    margin-top:10px;
+    font-size:13.5px;
+    line-height:1.5;
+}
+
+.evidence-beliefs{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:20px;
+}
+
+.evidence-belief{
+    gap:4px;
+    margin-top:10px;
+}
+
+.evidence-state{
+    text-transform:capitalize;
+}
+
+.evidence-metrics{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:8px;
+}
+
+.evidence-metric{
+    font-size:11.5px;
+    color:var(--muted);
+}

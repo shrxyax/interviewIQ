@@ -13,18 +13,25 @@ from typing import Callable
 
 import numpy as np
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
+from app.core import speech
 from app.core.llm_gateway import generate_structured
 from app.core.models import EvidenceEvent, Resume, User, utcnow
 from app.modules.communication import service as communication_service
 from app.modules.emotion import aggregate as emotion_aggregate
+from app.modules.interview import coding_round, design_round, review
 from app.modules.interview.models import (
+    InterviewCodingRound,
+    InterviewDesignRound,
     PROCTORING_LOG_LIMIT,
     InterviewContext,
     InterviewSession,
     InterviewTurn,
 )
+from app.modules.coding.models import CodingProblem
+from app.modules.whiteboard.models import DesignPrompt
+from app.modules.whiteboard.service import WhiteboardError
 from app.modules.mkt import belief as MB
 from app.modules.mkt.consistency import BASE_OUTCOME, CONTRADICTED, assess_answer, relation_outcome
 from app.modules.mkt.emissions import DEFAULT_THETA
@@ -41,7 +48,7 @@ from app.modules.mkt.service import (
 )
 from app.modules.mkt.states import BASE as MKT_BASE
 from app.modules.mkt.states import MR_CONSTRAINT, MR_PARAPHRASE, STATES
-from app.services.retriever import retrieve
+from app.services.retriever import latest_resume, retrieve
 
 
 # --------------------------------------------------------------------------
@@ -65,9 +72,16 @@ from app.services.retriever import retrieve
 # a turn is MKT-driven and glues the result into the interview's turn/answer
 # cycle. The standalone MKT experience (app/modules/mkt/service.py, the
 # /mkt page) is untouched by any of this.
+#
+# MKT is also the fallback question source: whenever the LLM can't produce a
+# next question (e.g. its daily quota is used up), the next turn is chosen by
+# EIG from the probe bank - beyond the MKT_MAX_TURNS cap - for every type in
+# MKT_FALLBACK_INTERVIEW_TYPES. MKT runs fully offline (local verifier), so
+# the interview keeps adapting instead of repeating one canned question.
 
 MKT_DOMAIN = "dsa"
-MKT_ELIGIBLE_INTERVIEW_TYPES = {"technical", "dsa"}
+MKT_ELIGIBLE_INTERVIEW_TYPES = {"technical", "dsa", "mixed"}
+MKT_FALLBACK_INTERVIEW_TYPES = MKT_ELIGIBLE_INTERVIEW_TYPES | {"custom"}
 MKT_TURN_INTERVAL = 3
 MKT_MAX_TURNS = 3
 
@@ -171,10 +185,12 @@ REPORT = "REPORT"
 # listed as a target here: the server clock can interrupt any live state
 # (READY..PROCESSING) into TIME_EXPIRED, enforced separately in
 # _apply_time_expiry rather than via this map.
+# Every live state can also go straight to GENERATING_REPORT when the
+# candidate ends the interview early (end_session).
 TRANSITIONS: dict[str, set[str]] = {
-    READY: {AI_SPEAKING},
-    AI_SPEAKING: {LISTENING},
-    LISTENING: {PROCESSING},
+    READY: {AI_SPEAKING, GENERATING_REPORT},
+    AI_SPEAKING: {LISTENING, GENERATING_REPORT},
+    LISTENING: {PROCESSING, GENERATING_REPORT},
     PROCESSING: {AI_SPEAKING, GENERATING_REPORT},
     TIME_EXPIRED: {GENERATING_REPORT},
     GENERATING_REPORT: {REPORT},
@@ -293,8 +309,14 @@ def _resume_context_text(context: InterviewContext) -> str:
         "skills projects experience education achievements"
     )
 
+    db = object_session(context)
+    resume = db.get(Resume, context.resume_id) if context.resume_id else latest_resume(db, context.user_id)
+
+    if resume is None:
+        return ""
+
     try:
-        chunks = retrieve(query, k=8)
+        chunks = retrieve(query, k=8, resume_id=resume.id, filename=resume.filename)
     except Exception as exc:
         print(f"Resume retrieval failed: {exc}")
         return ""
@@ -379,12 +401,9 @@ repeat previous questions, invent resume facts, or reveal the score to the candi
         result.next_question = _clean_question(result.next_question)
         return result
     except Exception as exc:
-        print(f"Answer evaluation failed: {exc}")
-        return TurnEvaluation(
-            score=5,
-            evaluation="The answer was reviewed, but detailed evaluation was unavailable.",
-            next_question="",
-        )
+        print(f"Answer evaluation failed, using the built-in reviewer: {str(exc)[:200]}")
+        result = review.review_answer(question, answer, context.interview_type, _embed)
+        return TurnEvaluation(score=result.score, evaluation=result.text, next_question="")
 
 
 def _default_generate_report(context: InterviewContext, history: list[dict]) -> FinalReport:
@@ -408,22 +427,14 @@ final feedback paragraph.
     try:
         return generate_structured(prompt, FinalReport, task="interview_final_report")
     except Exception as exc:
-        print(f"Final report generation failed: {exc}")
+        print(f"Final report generation failed, using the built-in reviewer: {str(exc)[:200]}")
+        return FinalReport(**review.build_report(context.interview_type, context.target_role, history, _embed))
 
-        scores = [h["score"] for h in history if h["score"] is not None]
-        overall = round((sum(scores) / len(scores)) * 10) if scores else 0
 
-        return FinalReport(
-            overall_score=overall,
-            communication=overall,
-            technical_knowledge=overall,
-            answer_relevance=overall,
-            clarity=overall,
-            problem_solving=overall,
-            strengths=[],
-            areas_for_improvement=[],
-            final_feedback="Detailed feedback was unavailable.",
-        )
+def _embed(texts: list[str]):
+    from app.services.embeddings import generate_embeddings
+
+    return generate_embeddings(texts)
 
 
 _deps: InterviewDeps | None = None
@@ -540,7 +551,6 @@ def _evaluate_mkt_turn(db: Session, user: User, mkt_state: dict, turn: Interview
     if probe_type == MKT_BASE:
         assessment, _ = assess_answer(turn.question, answer, spec, concept.misconceptions, mkt_deps.verifier)
         outcome = BASE_OUTCOME[assessment.answer_class]
-        reasons = [f"answer {assessment.answer_class} (coverage {assessment.coverage:.0%})"]
     else:
         base_turn = db.get(InterviewTurn, mkt_state["base_answered"][turn.mkt_concept_id])
         base_class = base_turn.mkt_assessment["answer_class"]
@@ -563,7 +573,7 @@ def _evaluate_mkt_turn(db: Session, user: User, mkt_state: dict, turn: Interview
             vecs = np.asarray(mkt_deps.embed([base_turn.answer, answer]))
             similarity = float(vecs[0] @ vecs[1])
 
-        outcome, reasons = relation_outcome(
+        outcome, _reasons = relation_outcome(
             probe_type, base_class, assessment, prior_claims_contradicted=contradicted, answer_similarity=similarity,
         )
 
@@ -614,7 +624,7 @@ def _evaluate_mkt_turn(db: Session, user: User, mkt_state: dict, turn: Interview
         )
     )
 
-    evaluation_text = f"({', '.join(reasons)})"
+    evaluation_text = review.mkt_feedback(concept.name, probe_type, outcome, spec, turn.mkt_assessment)
     return new_mkt_state, _MKT_OUTCOME_SCORE[outcome], evaluation_text
 
 
@@ -643,9 +653,26 @@ def _history_for_prompt(db: Session, session: InterviewSession, turns: list[Inte
             "score": t.score,
             "source": t.source,
             "mkt_probe_type": t.mkt_probe_type,
+            "coding": _coding_summary(db, t) if t.source == "coding" else None,
+            "design": design_round.history_summary(db, t) if t.source == "design" else None,
         }
         for t in turns
     ]
+
+
+def _coding_summary(db: Session, turn: InterviewTurn) -> dict | None:
+    coding = db.get(InterviewCodingRound, turn.id)
+    if coding is None:
+        return None
+
+    problem = db.get(CodingProblem, coding.problem_id)
+    return {
+        "problem_title": problem.title if problem else coding.problem_id,
+        "difficulty": problem.difficulty if problem else None,
+        "verdict": coding.verdict,
+        "passed": coding.passed,
+        "total": coding.total,
+    }
 
 
 def _proctoring_summary(session: InterviewSession) -> dict:
@@ -793,15 +820,20 @@ def record_proctoring_event(db: Session, user: User, session_id: str, event_type
     return _proctoring_summary(session)
 
 
-def _finish_session(db: Session, session: InterviewSession, deps: InterviewDeps) -> None:
+def _finish_session(db: Session, session: InterviewSession, deps: InterviewDeps, ended_early: bool = False) -> None:
     _transition(session, GENERATING_REPORT)
 
     context = db.get(InterviewContext, session.context_id)
     turns = _answered_turns(db, session)
     history = _history_for_prompt(db, session, turns)
-    report = deps.generate_report(context, history)
 
-    report_dict = report.model_dump()
+    if history:
+        report_dict = deps.generate_report(context, history).model_dump()
+    else:
+        # Nothing to evaluate; no need to ask the LLM.
+        report_dict = review.build_report(context.interview_type, context.target_role, history)
+
+    report_dict["ended_early"] = ended_early
     report_dict["question_feedback"] = history
     report_dict["proctoring_summary"] = _proctoring_summary(session)
     report_dict["communication_summary"] = communication_service.aggregate_session_metrics(turns)
@@ -872,6 +904,127 @@ def advance_to_listening(db: Session, user: User, session_id: str, deps: Intervi
     return public_session(db, session)
 
 
+def _record_answer(
+    db: Session,
+    user: User,
+    session: InterviewSession,
+    context: InterviewContext,
+    turn: InterviewTurn,
+    answer: str,
+    deps: InterviewDeps,
+    mkt_deps: MKTDeps | None,
+    emotion_signal: dict | None,
+) -> TurnEvaluation:
+    """
+    Scores `answer` for `turn` and records it with its evidence events.
+    Returns the plain LLM evaluation (its next_question is the candidate
+    follow-up for submit_turn_answer).
+    """
+
+    history = _history_for_prompt(db, session)
+
+    coding = db.get(InterviewCodingRound, turn.id) if turn.source == "coding" else None
+    design = db.get(InterviewDesignRound, turn.id) if turn.source == "design" else None
+
+    if design is not None:
+        # The whiteboard engine decides the score; the LLM sees the prompt,
+        # the design's measured results and the candidate's explanation.
+        graph, explanation = design_round.parse_answer(answer)
+        test_score, test_feedback, test_summary = design_round.grade(db, design, graph, explanation)
+        prompt = db.get(DesignPrompt, design.prompt_id)
+        llm_question = f"System design exercise: {prompt.title}\n{prompt.scenario}\nRequirements: {prompt.requirements}"
+        llm_answer = f"Design results: {test_summary}\nCandidate's explanation: {explanation or '(none given)'}"
+        # Store what the candidate said, not the raw JSON.
+        answer = explanation or "(Design submitted without an explanation.)"
+    elif coding is not None:
+        # The tests decide the score; the LLM sees the problem, the code and
+        # the test outcome, so its feedback reads as a code review.
+        test_score, test_feedback, test_summary = coding_round.grade(db, coding, answer)
+        problem = db.get(CodingProblem, coding.problem_id)
+        llm_question = f"Coding problem: {problem.title}\n{problem.statement}"
+        llm_answer = f"```python\n{answer}\n```\nTest results: {test_summary}"
+    else:
+        llm_question, llm_answer = turn.question, answer
+
+    # Always ask the plain LLM path for a candidate next_question, even for
+    # an MKT-driven turn: it keeps the interview's conversational thread
+    # coherent whenever the *next* turn isn't itself MKT-driven. Its score
+    # is discarded for MKT turns in favour of the MKT-derived one below.
+    evaluation = deps.evaluate_answer(context, history, llm_question, llm_answer)
+
+    turn.answer = answer
+    turn.answered_at = utcnow()
+    # Fillers/hedges/vocabulary are speech signals; they mean nothing for
+    # code or a diagram.
+    turn.comm_metrics = (
+        None if coding is not None or design is not None
+        else communication_service.build_turn_metrics(answer, turn.listening_started_at, turn.answered_at)
+    )
+    turn.emotion_metrics = emotion_signal
+
+    if coding is not None or design is not None:
+        turn.score = test_score
+        # An empty next_question means the LLM was unavailable and its
+        # evaluation is the built-in reviewer's, which is for prose, not
+        # code or designs.
+        label = "Code review" if coding is not None else "Design review"
+        review_text = f"\n\n{label}: {evaluation.evaluation}" if evaluation.next_question.strip() else ""
+        turn.evaluation = test_feedback + review_text
+        concept_id = None
+    elif turn.source == "mkt" and mkt_deps is not None:
+        new_mkt_state, score, evaluation_text = _evaluate_mkt_turn(db, user, session.mkt_state, turn, answer, mkt_deps)
+        turn.score = score
+        turn.evaluation = evaluation_text
+        session.mkt_state = new_mkt_state
+        concept_id = turn.mkt_concept_id
+    else:
+        turn.score = evaluation.score
+        turn.evaluation = evaluation.evaluation
+        concept_id = None
+
+    db.add(
+        EvidenceEvent(
+            user_id=user.id,
+            concept_id=concept_id,
+            domain=context.interview_type,
+            source="interview",
+            signal="turn_answered",
+            value={"session_id": session.id, "seq": turn.seq, "score": turn.score},
+        )
+    )
+
+    if turn.comm_metrics is not None:
+        db.add(
+            EvidenceEvent(
+                user_id=user.id,
+                concept_id=concept_id,
+                domain=context.interview_type,
+                source="comms",
+                signal="communication_analysis",
+                value={"session_id": session.id, "seq": turn.seq, **turn.comm_metrics},
+            )
+        )
+
+    if emotion_signal is not None:
+        db.add(
+            EvidenceEvent(
+                user_id=user.id,
+                concept_id=concept_id,
+                domain=context.interview_type,
+                source="comms",
+                signal="emotion_snapshot",
+                value={"session_id": session.id, "seq": turn.seq, **emotion_signal},
+            )
+        )
+
+    # The session's autoflush is off; _finish_session re-queries
+    # InterviewTurn for the history, so this turn's answer must be
+    # flushed before that happens.
+    db.flush()
+
+    return evaluation
+
+
 def submit_turn_answer(
     db: Session,
     user: User,
@@ -904,68 +1057,7 @@ def submit_turn_answer(
         .one()
     )
     context = db.get(InterviewContext, session.context_id)
-    history = _history_for_prompt(db, session)
-
-    # Always ask the plain LLM path for a candidate next_question, even for
-    # an MKT-driven turn: it keeps the interview's conversational thread
-    # coherent whenever the *next* turn isn't itself MKT-driven. Its score
-    # is discarded for MKT turns in favour of the MKT-derived one below.
-    evaluation = deps.evaluate_answer(context, history, turn.question, answer)
-
-    turn.answer = answer
-    turn.answered_at = utcnow()
-    turn.comm_metrics = communication_service.build_turn_metrics(answer, turn.listening_started_at, turn.answered_at)
-    turn.emotion_metrics = emotion_signal
-
-    if turn.source == "mkt" and mkt_deps is not None:
-        new_mkt_state, score, evaluation_text = _evaluate_mkt_turn(db, user, session.mkt_state, turn, answer, mkt_deps)
-        turn.score = score
-        turn.evaluation = evaluation_text
-        session.mkt_state = new_mkt_state
-        concept_id = turn.mkt_concept_id
-    else:
-        turn.score = evaluation.score
-        turn.evaluation = evaluation.evaluation
-        concept_id = None
-
-    db.add(
-        EvidenceEvent(
-            user_id=user.id,
-            concept_id=concept_id,
-            domain=context.interview_type,
-            source="interview",
-            signal="turn_answered",
-            value={"session_id": session.id, "seq": turn.seq, "score": turn.score},
-        )
-    )
-
-    db.add(
-        EvidenceEvent(
-            user_id=user.id,
-            concept_id=concept_id,
-            domain=context.interview_type,
-            source="comms",
-            signal="communication_analysis",
-            value={"session_id": session.id, "seq": turn.seq, **turn.comm_metrics},
-        )
-    )
-
-    if emotion_signal is not None:
-        db.add(
-            EvidenceEvent(
-                user_id=user.id,
-                concept_id=concept_id,
-                domain=context.interview_type,
-                source="comms",
-                signal="emotion_snapshot",
-                value={"session_id": session.id, "seq": turn.seq, **emotion_signal},
-            )
-        )
-
-    # The session's autoflush is off; _finish_session re-queries
-    # InterviewTurn for the history, so this turn's answer must be
-    # flushed before that happens.
-    db.flush()
+    evaluation = _record_answer(db, user, session, context, turn, answer, deps, mkt_deps, emotion_signal)
 
     question_limit_reached = (
         session.num_questions is not None and session.turns_asked >= session.num_questions
@@ -979,8 +1071,41 @@ def submit_turn_answer(
 
     next_seq = turn.seq + 1
     next_turn = None
+    llm_question = evaluation.next_question.strip()
 
-    if mkt_deps is not None and _mkt_eligible(context) and _is_mkt_turn_seq(next_seq):
+    is_mkt_seq = lambda seq: _mkt_eligible(context) and _is_mkt_turn_seq(seq)  # noqa: E731
+    scheduled_mkt = is_mkt_seq(next_seq)
+    fallback_mkt = not llm_question and context.interview_type in MKT_FALLBACK_INTERVIEW_TYPES
+
+    problem = design_prompt = None
+    if next_seq == coding_round.coding_seq(context, session.num_questions, is_mkt_seq):
+        problem = coding_round.pick_problem(db, user.id, context.experience_level)
+    elif next_seq == design_round.design_seq(context, session.num_questions, is_mkt_seq):
+        design_prompt = design_round.pick_prompt(db, user.id, context.experience_level)
+
+    if design_prompt is not None:
+        next_turn = InterviewTurn(
+            session_id=session.id,
+            seq=next_seq,
+            question=design_round.intro_question(design_prompt),
+            state_at_ask=AI_SPEAKING,
+            source="design",
+        )
+        db.add(next_turn)
+        db.flush()
+        design_round.start_round(db, next_turn, design_prompt)
+    elif problem is not None:
+        next_turn = InterviewTurn(
+            session_id=session.id,
+            seq=next_seq,
+            question=coding_round.intro_question(problem),
+            state_at_ask=AI_SPEAKING,
+            source="coding",
+        )
+        db.add(next_turn)
+        db.flush()
+        coding_round.start_round(db, next_turn, problem)
+    elif mkt_deps is not None and (scheduled_mkt or fallback_mkt):
         mkt_state = session.mkt_state or _init_mkt_state(db, user)
         resume_text = _resume_context_text(context)
         mkt_turn_data = _select_mkt_turn(db, mkt_state, resume_text)
@@ -1000,7 +1125,8 @@ def submit_turn_answer(
             session.mkt_state = mkt_state
 
     if next_turn is None:
-        next_question = evaluation.next_question.strip() or _fallback_next_question(context)
+        asked = {t.question for t in db.query(InterviewTurn).filter_by(session_id=session.id)}
+        next_question = llm_question or _fallback_next_question(context, asked)
         next_turn = InterviewTurn(session_id=session.id, seq=next_seq, question=next_question, state_at_ask=AI_SPEAKING)
 
     db.add(next_turn)
@@ -1013,11 +1139,153 @@ def submit_turn_answer(
     return public_session(db, session)
 
 
-def _fallback_next_question(context: InterviewContext) -> str:
-    if context.interview_type in ("technical", "dsa", "system_design", "core_cs"):
-        return "Can you explain another technical aspect of your experience in more detail?"
+# Used only when neither the LLM nor MKT can supply the next question.
+_FALLBACK_QUESTIONS = {
+    "technical": [
+        "Walk me through the most technically challenging project on your resume. What made it hard?",
+        "Tell me about a bug that took you a long time to find. How did you track it down?",
+        "How do you decide between two possible designs for a feature? Give a concrete example.",
+        "How do you test your code before you consider it done?",
+        "Describe a time you had to make code faster or use less memory. What did you measure?",
+        "What would you change about a project you built if you started it again today?",
+    ],
+    "core_cs": [
+        "What is the difference between a process and a thread, and when would you use each?",
+        "Explain what a deadlock is and the conditions needed for one to occur.",
+        "What are database indexes, and what do they cost you?",
+        "What happens, step by step, when you type a URL into a browser and press Enter?",
+        "Explain the ACID properties of a database transaction.",
+        "How does virtual memory work, and why is paging useful?",
+        "What is the difference between TCP and UDP? Give a use case for each.",
+    ],
+    "system_design": [
+        "How would you design a URL shortener? Start with the core requirements.",
+        "How would you design the backend for a chat application with read receipts?",
+        "Where would you add caching in a read-heavy web service, and how would you keep it fresh?",
+        "How would you design a rate limiter for a public API?",
+        "How would you design a news feed that has to serve millions of users?",
+    ],
+    "behavioral": [
+        "Tell me about a time you had to solve a difficult problem. What did you do?",
+        "Describe a disagreement with a teammate. How did you resolve it?",
+        "Tell me about a time you missed a deadline or made a mistake. What did you learn?",
+        "Describe a situation where you had to learn something new very quickly.",
+        "Tell me about an accomplishment you are proud of and your exact role in it.",
+        "How do you prioritise when you have several tasks due at the same time?",
+        "Where do you see yourself in the next two to three years, and why this role?",
+    ],
+}
 
-    return "Can you describe a situation where you had to solve a difficult problem?"
+_FALLBACK_BANK_BY_TYPE = {
+    "technical": ["technical", "behavioral"],
+    "dsa": ["technical", "core_cs"],
+    "core_cs": ["core_cs", "technical"],
+    "system_design": ["system_design", "technical"],
+    "mixed": ["technical", "core_cs", "behavioral"],
+    "custom": ["technical", "behavioral"],
+    "hr": ["behavioral"],
+}
+
+
+def end_session(
+    db: Session,
+    user: User,
+    session_id: str,
+    deps: InterviewDeps,
+    answer: str | None = None,
+    mkt_deps: MKTDeps | None = None,
+    emotion_signal: dict | None = None,
+) -> dict:
+    """
+    Ends a live interview early (the candidate chose to leave) and builds
+    the report from the questions answered so far. An answer still in
+    progress for the open question is scored too, so it isn't lost.
+    Ending an interview that has already finished just returns it.
+    """
+
+    session = _get_owned_session(db, user, session_id)
+
+    if session.state not in LIVE_STATES:
+        return public_session(db, session)
+
+    answer = (answer or "").strip()
+
+    if answer and session.state == LISTENING:
+        turn = (
+            db.query(InterviewTurn)
+            .filter_by(session_id=session.id, seq=session.current_turn_seq)
+            .one()
+        )
+        context = db.get(InterviewContext, session.context_id)
+        _record_answer(db, user, session, context, turn, answer, deps, mkt_deps, emotion_signal)
+
+    _finish_session(db, session, deps, ended_early=True)
+    db.commit()
+
+    return public_session(db, session)
+
+
+def run_code(db: Session, user: User, session_id: str, code: str) -> dict:
+    """Runs the visible tests for the open coding question."""
+
+    session = _get_owned_session(db, user, session_id)
+
+    if session.state != LISTENING:
+        raise InterviewSessionError(f"Code can only be run while answering (the session is {session.state}).")
+
+    turn = (
+        db.query(InterviewTurn)
+        .filter_by(session_id=session.id, seq=session.current_turn_seq)
+        .one()
+    )
+    coding = db.get(InterviewCodingRound, turn.id) if turn.source == "coding" else None
+
+    if coding is None:
+        raise InterviewSessionError("The current question is not a coding question.")
+
+    result = coding_round.run_visible(db, coding, code)
+    db.commit()
+    return result
+
+
+def analyze_design(db: Session, user: User, session_id: str, graph: dict) -> dict:
+    """Analyses the draft design for the open design-lab question."""
+
+    session = _get_owned_session(db, user, session_id)
+
+    if session.state != LISTENING:
+        raise InterviewSessionError(f"The design can only be analysed while answering (the session is {session.state}).")
+
+    turn = (
+        db.query(InterviewTurn)
+        .filter_by(session_id=session.id, seq=session.current_turn_seq)
+        .one()
+    )
+    design = db.get(InterviewDesignRound, turn.id) if turn.source == "design" else None
+
+    if design is None:
+        raise InterviewSessionError("The current question is not a design question.")
+
+    try:
+        result = design_round.analyze(db, design, graph)
+    except WhiteboardError as exc:
+        raise InterviewSessionError(str(exc)) from exc
+
+    db.commit()
+    return result
+
+
+def _fallback_next_question(context: InterviewContext, asked: set[str]) -> str:
+    """The first question from this type's banks that hasn't been asked yet."""
+
+    banks = _FALLBACK_BANK_BY_TYPE.get(context.interview_type, ["behavioral"])
+    candidates = [q for bank in banks for q in _FALLBACK_QUESTIONS[bank]]
+
+    for question in candidates:
+        if question not in asked:
+            return question
+
+    return f"Is there anything else about your fit for the {context.target_role} role you would like to add?"
 
 
 def get_session(db: Session, user: User, session_id: str, deps: InterviewDeps) -> dict:
@@ -1030,8 +1298,32 @@ def get_session(db: Session, user: User, session_id: str, deps: InterviewDeps) -
     return public_session(db, session)
 
 
+def current_question_audio(db: Session, user: User, session_id: str) -> tuple[bytes, str]:
+    """
+    The current question read aloud, as (audio bytes, mime type). Only for a
+    live session's open question, and only to the session's owner.
+    """
+
+    session = _get_owned_session(db, user, session_id)
+
+    turn = None
+    if session.state in (AI_SPEAKING, LISTENING, PROCESSING) and session.current_turn_seq is not None:
+        turn = (
+            db.query(InterviewTurn)
+            .filter_by(session_id=session.id, seq=session.current_turn_seq)
+            .one_or_none()
+        )
+
+    if turn is None or not turn.question:
+        raise InterviewSessionError("There is no question to read right now.")
+
+    return speech.synthesize(turn.question)
+
+
 def public_session(db: Session, session: InterviewSession) -> dict:
     question = None
+    coding = None
+    design = None
 
     if session.state in (AI_SPEAKING, LISTENING, PROCESSING) and session.current_turn_seq is not None:
         turn = (
@@ -1042,6 +1334,10 @@ def public_session(db: Session, session: InterviewSession) -> dict:
 
         if turn is not None:
             question = turn.question
+            if turn.source == "coding":
+                coding = coding_round.public_payload(db, turn)
+            elif turn.source == "design":
+                design = design_round.public_payload(db, turn)
 
     ends_at = session.ends_at if session.ends_at.tzinfo else session.ends_at.replace(tzinfo=timezone.utc)
     time_remaining = max(0, int((ends_at - datetime.now(timezone.utc)).total_seconds()))
@@ -1051,6 +1347,10 @@ def public_session(db: Session, session: InterviewSession) -> dict:
         "context_id": session.context_id,
         "state": session.state,
         "question": question,
+        # The coding problem when the current question is the coding round.
+        "coding": coding,
+        # The design-lab exercise when the current question is one.
+        "design": design,
         "question_number": session.current_turn_seq,
         "questions_asked": session.turns_asked,
         "total_questions": session.num_questions,

@@ -222,3 +222,118 @@ def test_time_expiry_ends_interview_even_without_question_limit(client):
     body = r.json()
     assert body["state"] == "REPORT"
     assert body["report"]["question_feedback"] == []
+
+
+def test_question_audio_is_served_to_the_owner_only(client, monkeypatch):
+    from app.core import speech
+
+    spoken = []
+
+    def fake_speech(text):
+        spoken.append(text)
+        return b"RIFF-fake-wav", "audio/wav"
+
+    monkeypatch.setattr(speech, "synthesize", fake_speech)
+
+    headers = _register(client, "audio_owner")
+    context_id = _create_context(client, headers)
+    session = client.post("/interview/sessions", json={"context_id": context_id}, headers=headers).json()
+
+    r = client.get(f"/interview/sessions/{session['session_id']}/question-audio", headers=headers)
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "audio/wav"
+    assert r.content == b"RIFF-fake-wav"
+    assert spoken == [session["question"]]
+
+    stranger = _register(client, "audio_stranger")
+    r = client.get(f"/interview/sessions/{session['session_id']}/question-audio", headers=stranger)
+    assert r.status_code == 404
+
+
+def test_question_audio_failure_is_reported_as_unavailable(client, monkeypatch):
+    from app.core import speech
+
+    def broken_speech(text):
+        raise RuntimeError("TTS quota exceeded")
+
+    monkeypatch.setattr(speech, "synthesize", broken_speech)
+
+    headers = _register(client, "audio_unavailable")
+    context_id = _create_context(client, headers)
+    session = client.post("/interview/sessions", json={"context_id": context_id}, headers=headers).json()
+
+    r = client.get(f"/interview/sessions/{session['session_id']}/question-audio", headers=headers)
+    assert r.status_code == 503
+
+
+# --------------------------------------------------------------------------
+# Ending an interview early
+# --------------------------------------------------------------------------
+
+def _start(client, headers, **overrides):
+    context_id = _create_context(client, headers, num_questions=5, **overrides)
+    r = client.post("/interview/sessions", json={"context_id": context_id}, headers=headers)
+    assert r.status_code == 200, r.text
+    return r.json()["session_id"]
+
+
+def test_ending_early_builds_the_report_from_answered_questions(client):
+    headers = _register(client, "end_early_user")
+    session_id = _start(client, headers)
+
+    client.post(f"/interview/sessions/{session_id}/listening", headers=headers)
+    client.post(f"/interview/sessions/{session_id}/answer", json={"answer": "My first answer."}, headers=headers)
+
+    r = client.post(f"/interview/sessions/{session_id}/end", json={}, headers=headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["state"] == "REPORT"
+    assert body["report"]["ended_early"] is True
+    assert [q["answer"] for q in body["report"]["question_feedback"]] == ["My first answer."]
+
+    # Ending again is harmless and returns the same report.
+    again = client.post(f"/interview/sessions/{session_id}/end", json={}, headers=headers).json()
+    assert again["report"] == body["report"]
+
+
+def test_ending_early_scores_the_answer_in_progress(client):
+    headers = _register(client, "end_early_in_progress")
+    session_id = _start(client, headers)
+
+    client.post(f"/interview/sessions/{session_id}/listening", headers=headers)
+    r = client.post(f"/interview/sessions/{session_id}/end", json={"answer": "Half-finished answer"}, headers=headers)
+
+    feedback = r.json()["report"]["question_feedback"]
+    assert [(q["answer"], q["score"]) for q in feedback] == [("Half-finished answer", 7)]
+
+
+def test_ending_before_answering_anything_gives_an_empty_report_without_the_llm(client):
+    headers = _register(client, "end_early_nothing")
+    session_id = _start(client, headers)
+
+    def fail(*args):
+        raise AssertionError("the report LLM should not be called with no answers")
+
+    app.dependency_overrides[get_interview_deps] = lambda: InterviewDeps(
+        generate_first_question=_fake_generate_first_question,
+        evaluate_answer=_fake_evaluate_answer,
+        generate_report=fail,
+    )
+    try:
+        r = client.post(f"/interview/sessions/{session_id}/end", json={}, headers=headers)
+    finally:
+        app.dependency_overrides[get_interview_deps] = lambda: FAKE_DEPS
+
+    report = r.json()["report"]
+    assert r.json()["state"] == "REPORT"
+    assert report["question_feedback"] == []
+    assert report["overall_score"] == 0
+
+
+def test_cannot_end_someone_elses_interview(client):
+    owner = _register(client, "end_owner")
+    other = _register(client, "end_other")
+    session_id = _start(client, owner)
+
+    r = client.post(f"/interview/sessions/{session_id}/end", json={}, headers=other)
+    assert r.status_code == 404

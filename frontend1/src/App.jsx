@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import "./App.css";
 
@@ -6,15 +6,20 @@ import Layout from "./components/Layout";
 import OnboardingPage from "./pages/OnboardingPage";
 import SignInPage from "./pages/SignInPage";
 import ChatInterviewPage from "./pages/ChatInterviewPage";
-import DsaSheetPage from "./pages/DsaSheetPage";
-import CoreCsPage from "./pages/CoreCsPage";
-import CompaniesPage from "./pages/CompaniesPage";
-import CompanyDetailPage from "./pages/CompanyDetailPage";
-import MktPage from "./pages/MktPage";
-import WhiteboardPage from "./pages/WhiteboardPage";
-import CodingPage from "./pages/CodingPage";
-import AptitudePage from "./pages/AptitudePage";
-import ProfilePage from "./pages/ProfilePage";
+import { LoadingState } from "./components/shared/LoadingState";
+
+// Secondary pages are code-split so the heavy editors (Monaco, React Flow,
+// Recharts) only download when their route is opened.
+const DsaSheetPage = lazy(() => import("./pages/DsaSheetPage"));
+const CoreCsPage = lazy(() => import("./pages/CoreCsPage"));
+const CoreCsTopicPage = lazy(() => import("./pages/CoreCsTopicPage"));
+const CompaniesPage = lazy(() => import("./pages/CompaniesPage"));
+const CompanyDetailPage = lazy(() => import("./pages/CompanyDetailPage"));
+const MktPage = lazy(() => import("./pages/MktPage"));
+const WhiteboardPage = lazy(() => import("./pages/WhiteboardPage"));
+const CodingPage = lazy(() => import("./pages/CodingPage"));
+const AptitudePage = lazy(() => import("./pages/AptitudePage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
 import { ensureIdentity } from "./services/auth";
 
@@ -35,8 +40,8 @@ function App() {
 
   if (!ready) {
     return (
-      <div className="layout" style={{ alignItems: "center", justifyContent: "center" }}>
-        <p style={{ color: "var(--muted)" }}>Loading InterviewIQ...</p>
+      <div className="layout app-boot">
+        <p className="muted">Loading InterviewIQ...</p>
       </div>
     );
   }
@@ -57,10 +62,12 @@ function App() {
             <OnboardingPage onComplete={completeOnboarding} />
           ) : (
             <Layout>
+              <Suspense fallback={<LoadingState />}>
               <Routes>
                 <Route path="/" element={<ChatInterviewPage />} />
                 <Route path="/dsa-sheet" element={<DsaSheetPage />} />
                 <Route path="/core-cs" element={<CoreCsPage />} />
+                <Route path="/core-cs/:noteId" element={<CoreCsTopicPage />} />
                 <Route path="/companies" element={<CompaniesPage />} />
                 <Route path="/companies/:companyId" element={<CompanyDetailPage />} />
                 <Route path="/mkt" element={<MktPage />} />
@@ -72,14 +79,15 @@ function App() {
                 <Route
                   path="*"
                   element={
-                    <div className="page-content" style={{ alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-                      <h1 style={{ fontSize: 24, marginBottom: 10 }}>Page not found</h1>
-                      <p style={{ color: "var(--muted)", marginBottom: 20 }}>That route doesn't exist.</p>
-                      <Link to="/" style={{ color: "var(--primary)", fontWeight: 600 }}>Go home &rarr;</Link>
+                    <div className="page-content not-found">
+                      <h1>Page not found</h1>
+                      <p className="muted">That route doesn't exist.</p>
+                      <Link to="/" className="link-btn">Go home &rarr;</Link>
                     </div>
                   }
                 />
               </Routes>
+              </Suspense>
             </Layout>
           )
         }

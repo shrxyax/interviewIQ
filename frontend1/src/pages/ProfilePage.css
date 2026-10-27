@@ -1,0 +1,77 @@
+/* Profile: account card, practice progress, knowledge robustness. */
+
+.profile-grid{
+    align-items:start;
+}
+
+.profile-avatar{
+    width:48px;
+    height:48px;
+    flex-shrink:0;
+    border-radius:999px;
+    background:var(--primary-soft);
+    color:var(--primary);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:18px;
+}
+
+.profile-name{
+    font-weight:700;
+    font-size:16px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.profile-signout{
+    flex-shrink:0;
+    background:transparent;
+    border-color:var(--border);
+    color:var(--muted);
+    border-radius:10px;
+    padding:8px 12px;
+}
+
+.profile-signout:hover{
+    color:var(--danger);
+    border-color:var(--danger);
+    background:var(--danger-soft);
+}
+
+.profile-credentials{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 12px;
+    font-size:13px;
+    margin-bottom:12px;
+    overflow-wrap:anywhere;
+}
+
+.profile-claim{
+    padding:10px 0;
+    font-size:13px;
+    background:transparent;
+}
+
+.profile-input{
+    padding:9px 12px;
+    font-size:13px;
+}
+
+.profile-save{
+    padding:9px 0;
+    font-size:13px;
+    border-radius:8px;
+}
+
+.profile-section-title{
+    margin:32px 0 14px;
+}
